@@ -11,6 +11,7 @@ def dataset_input_fn(filenames, labels,
 	):
 
 	dataset = tf.data.TFRecordDataset(filenames)
+	num_classes = len(labels)
 
 	def parser(data_record):
 		feature_def = {
