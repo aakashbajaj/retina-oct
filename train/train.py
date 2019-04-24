@@ -93,9 +93,9 @@ if tf_reader.IsDirectory(train_path):
 	for filename in tf.gfile.ListDirectory(train_path):
 		filepath = os.path.join(train_path, filename)
 		training_filenames.append(filepath)
-	else:
-		print("Invalid training directory. Exiting.......\n")
-		exit(0)
+else:
+	print("Invalid training directory. Exiting.......\n")
+	exit(0)
 
 if tf_reader.IsDirectory(test_path):
 	for filename in tf.gfile.ListDirectory(test_path):
