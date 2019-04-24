@@ -14,9 +14,9 @@ import tensorflow.gfile as tf_reader
 def _bytes_feature(value):
 	return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
-def _load_image(path, height, width, ann_dir):
+def _load_image(image_path, height, width, ann_dir):
 	try:
-		with tf_reader.GFile(path, 'rb') as fl:
+		with tf_reader.GFile(image_path, 'rb') as fl:
 			image_bytes = fl.read()
 			
 			image = cv2.imdecode(np.frombuffer(image_bytes, np.uint8), -1)
@@ -24,11 +24,11 @@ def _load_image(path, height, width, ann_dir):
 			if ann_dir != "":
 				image = _get_ann_images(path, image, ann_dir)
 			image = cv2.resize(image, (width, height), interpolation=cv2.INTER_AREA)
-			# print(image.astype(np.float32).shape)
 			return image.astype(np.float32)
 
+
 	except Exception as e:
-		print("Error Processing Image: %s\n %s" % (path, str(e)))
+		print("Error Processing Image: %s\n %s" % (image_path, str(e)))
 		return
 
 def _get_ann_images(filepath, img_arr, ann_dir):
