@@ -14,21 +14,25 @@ def get_available_gpus():
 from argparse import ArgumentParser
 parser = ArgumentParser()
 
-
-
 parser.add_argument("--tfr-dir", required=True, dest="TFR_DIR", help="Folder containing converted records")
-parser.add_argument("--ckpt-dir", dest="CKPT_DIR", help="Folder for model checkpointing", default="/tmp/model_ckpt/")
+parser.add_argument("--model-dir", dest="MODEL_DIR", help="Folder for model checkpointing", default="/tmp/model_ckpt/")
 parser.add_argument("--label-list", required=True, dest="LABEL_LIST", help="Location of labels json file")
-parser.add_argument("--num-shards", type=int, dest="NUM_SHARDS", default=2)
-parser.add_argument("--split-flag", type=int, dest="SPLIT_FLAG", default=1)
+parser.add_argument("--epochs", type=int, dest="EPOCHS", default=1)
+parser.add_argument("--batch", type=int, dest="BATCH_SIZE", default=64)
+parser.add_argument("--prefetch", type=int, dest="PREFETCH", default=4)
 parser.add_argument("--height", type=int, dest="HEIGHT", default=224)
 parser.add_argument("--width", type=int, dest="WIDTH", default=224)
 
 args = parser.parse_args()
 
-
-
-
+TFR_DIR = args.TFR_DIR
+MODEL_DIR = args.MODEL_DIR
+LABEL_LIST = args.LABEL_LIST
+EPOCHS = int(args.EPOCHS)
+BATCH_SIZE = int(args.BATCH_SIZE)
+PREFETCH = int(args.PREFETCH)
+HEIGHT = int(args.HEIGHT)
+WIDTH = int(args.WIDTH)
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -39,6 +43,8 @@ class TimeHistory(tf.train.SessionRunHook):
 		self.iter_time_start = time.time()
 	def after_run(self, run_context, run_values):
 		self.times.append(time.time() - self.iter_time_start)
+
+time_hist = TimeHistory()
 
 def dataset_input_fn(filenames, labels, 
 	image_size=(224,224,1),
@@ -67,30 +73,18 @@ def dataset_input_fn(filenames, labels,
 
 		return (img_arr, tf.one_hot([label], num_classes))
 
-	# if num_epochs is not None and shuffle:
-	# 	dataset = dataset.apply(tf.contrib.data.shuffle_and_repeat(buffer_size, num_epochs))
-	# elif shuffle:
-	# 	dataset = dataset.shuffle(buffer_size)
-	# elif num_epochs is not None:
-	# 	dataset = dataset.repeat(num_epochs)
-
-	# dataset = dataset.apply(tf.contrib.data.map_and_batch(map_func=tfr_parser,
-	# 							batch_size=batch_size,
-	# 							num_parallel_calls=os.cpu_count()))
-	# dataset = dataset.prefetch(buffer_size=prefetch_buffer_size)
 	if shuffle:
 		dataset = dataset.shuffle(buffer_size)
 	elif num_epochs is not None:
 		dataset = dataset.repeat(num_epochs)
 	
-	dataset = dataset.map(tfr_parser)
+	dataset = dataset.map(tfr_parser, num_parallel_calls=os.cpu_count())
 	dataset = dataset.batch(batch_size)
 	dataset = dataset.prefetch(buffer_size=prefetch_buffer_size)
 	
 	return dataset
-
-train_path = "/home/aakashbajaj5311/oct/conv/train"
-test_path = "/home/aakashbajaj5311/oct/conv/test"
+train_path = os.path.join(TFR_DIR, "train")
+test_path = os.path.join(TFR_DIR, "test")
 
 training_filenames = []
 testing_filenames = []
@@ -99,6 +93,9 @@ if tf_reader.IsDirectory(train_path):
 	for filename in tf.gfile.ListDirectory(train_path):
 		filepath = os.path.join(train_path, filename)
 		training_filenames.append(filepath)
+	else:
+		print("Invalid training directory. Exiting.......\n")
+		exit(0)
 
 if tf_reader.IsDirectory(test_path):
 	for filename in tf.gfile.ListDirectory(test_path):
@@ -106,11 +103,15 @@ if tf_reader.IsDirectory(test_path):
 		testing_filenames.append(filepath)
 
 import json
-labels_path = "/home/aakashbajaj5311/oct/conv/labels.json"
-with open(labels_path, 'r') as fl:
-	labels = json.load(fl)
+try:
+	with open(LABEL_LIST, 'r') as fl:
+		labels = json.load(fl)
+except Exception as e:
+	print(str(e))
+	exit(0)
 
-keras_vgg = tf.keras.applications.VGG16(input_shape=(224,224,3), include_top=False)
+
+keras_vgg = tf.keras.applications.VGG16(input_shape=(HEIGHT, WIDTH, 3), include_top=False)
 
 output = keras_vgg.output
 output = tf.keras.layers.Flatten()(output)
@@ -127,15 +128,10 @@ model.compile(loss='categorical_crossentropy',
 
 NUM_GPUS = get_available_gpus()
 
-
 strategy = tf.contrib.distribute.MirroredStrategy(num_gpus=NUM_GPUS)
-config = tf.estimator.RunConfig(train_distribute=strategy)
+config = tf.estimator.RunConfig(train_distribute=strategy, model_dir=MODEL_DIR)
 estimator = tf.keras.estimator.model_to_estimator(model, config=config)
 
-BATCH_SIZE = 32
-EPOCHS = 1
-
-time_hist = TimeHistory()
 #logging_hook = tf.train.LoggingTensorHook({"loss" : loss, "accuracy" : accuracy}, every_n_iter=10)
 
 oct_train_in = lambda:dataset_input_fn(training_filenames, labels, shuffle=True, batch_size=BATCH_SIZE, buffer_size=2048, num_epochs=EPOCHS, prefetch_buffer_size=4)
