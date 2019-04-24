@@ -4,6 +4,8 @@ import time
 
 from data_utils import dataset_input_fn
 
+import tensorflow.gfile as tf_reader
+
 tf.logging.set_verbosity(tf.logging.INFO)
 
 class TimeHistory(tf.train.SessionRunHook):
