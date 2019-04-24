@@ -50,12 +50,18 @@ else:
 BUCKET_NAME = ""
 BUCKET_PATH = ""
 
-def _fast_write_sharded_tfrs(examples, num_shards, output_dir, image_dims, is_training=True):
+def _fast_write_sharded_tfrs(examples, num_shards, output_dir, image_dims, is_training=1):
 	sharded_examples = split_list(examples, num_shards)
 
 	for count, shard in enumerate(sharded_examples, start=1):
 		print("Starting %s shard %d" % ('train' if is_training else 'test', count))
-		output_filename = '{0}_{1:02d}_of_{2:02d}.tfrecord'.format('train' if is_training else 'test', count, num_shards)
+		if is_training == 1:
+			shard_prefix = "train"
+		elif is_training == 0:
+			shard_prefix = "test"
+		else:
+			shard_prefix = "data"
+		output_filename = '{0}_{1:02d}_of_{2:02d}.tfrecord'.format(shard_prefix, count, num_shards)
 		out_filepath = os.path.join(output_dir, output_filename)
 		pool.apply_async(_write_tf_records, args=(shard, out_filepath, image_dims, ANN_DIR))
 
@@ -114,10 +120,10 @@ if (SPLIT_FLAG):
 			exit(0)
 
 	print("Creating training shards", flush=True)
-	_fast_write_sharded_tfrs(train_examples, (NUM_SHARDS), train_dir, (HEIGHT, WIDTH))
+	_fast_write_sharded_tfrs(train_examples, (NUM_SHARDS), train_dir, (HEIGHT, WIDTH), is_training=1)
 	print("\n", flush=True)
 	print("Creating testing shards", flush=True)
-	_fast_write_sharded_tfrs(test_examples, (NUM_SHARDS), test_dir, (HEIGHT, WIDTH), False)
+	_fast_write_sharded_tfrs(test_examples, (NUM_SHARDS), test_dir, (HEIGHT, WIDTH), is_training=0)
 	print("\n", flush=True)
 	
 else:
@@ -132,7 +138,7 @@ else:
 			exit(0)
 
 	print("Creating dataset shards", flush=True)
-	_fast_write_sharded_tfrs(examples, NUM_SHARDS, OUT_DIR, (HEIGHT, WIDTH))
+	_fast_write_sharded_tfrs(examples, NUM_SHARDS, OUT_DIR, (HEIGHT, WIDTH), is_training=2)
 	print("\n", flush=True)
 
 pool.close()
