@@ -24,7 +24,7 @@ def dataset_input_fn(filenames, labels,
 			
 		img_arr = tf.decode_raw(sample['image'], tf.float32)
 		img_arr = tf.reshape(img_arr, (image_size[0], image_size[1], 3))
-		label = tf.decode_raw(sample['label'], tf.float32)
+		label = tf.decode_raw(sample['label'], tf.int64)
 
 		return (img_arr, tf.one_hot([label], num_classes))
 
