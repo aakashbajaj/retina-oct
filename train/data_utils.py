@@ -1,4 +1,5 @@
 import tensorflow as tf
+import os
 
 def dataset_input_fn(filenames, labels, 
 	image_size=(224,224),
