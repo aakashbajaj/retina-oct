@@ -19,7 +19,8 @@ parser.add_argument("--model-dir", dest="MODEL_DIR", help="Folder for model chec
 parser.add_argument("--label-list", required=True, dest="LABEL_LIST", help="Location of labels json file")
 parser.add_argument("--epochs", type=int, dest="EPOCHS", default=1)
 parser.add_argument("--batch", type=int, dest="BATCH_SIZE", default=64)
-parser.add_argument("--prefetch", type=int, dest="PREFETCH", default=4)
+parser.add_argument("--train-steps", type=int, dest="TRAIN_STEPS", default=10000)
+parser.add_argument("--prefetch", type=int, dest="PREFETCH", default=-1)
 parser.add_argument("--height", type=int, dest="HEIGHT", default=224)
 parser.add_argument("--width", type=int, dest="WIDTH", default=224)
 
@@ -33,6 +34,11 @@ BATCH_SIZE = int(args.BATCH_SIZE)
 PREFETCH = int(args.PREFETCH)
 HEIGHT = int(args.HEIGHT)
 WIDTH = int(args.WIDTH)
+TRAIN_STEPS = int(args.TRAIN_STEPS)
+
+# if prefetch_buffer_size is None then TensorFlow will use an optimal prefetch buffer size automatically
+if PREFETCH == -1:
+	PREFETCH = None
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -46,17 +52,13 @@ class TimeHistory(tf.train.SessionRunHook):
 
 time_hist = TimeHistory()
 
-def dataset_input_fn(filenames, labels, 
-	image_size=(224,224,1),
-	shuffle=False,
-	batch_size=64,
-	num_epochs=None,
-	buffer_size=4096,
-	prefetch_buffer_size=None):
+def dataset_input_fn(filenames, labels, image_size=(224,224,1),	shuffle=False, batch_size=64, num_epochs=None,
+		buffer_size=4096, prefetch_buffer_size=None):
 
 	dataset = tf.data.TFRecordDataset(filenames)
 	num_classes = len(labels)
 
+	# parser function for reading stored tfrecords
 	def tfr_parser(data_record):
 		feature_def = {
 			'filename': tf.FixedLenFeature([], tf.string),
@@ -83,6 +85,7 @@ def dataset_input_fn(filenames, labels,
 	dataset = dataset.prefetch(buffer_size=prefetch_buffer_size)
 	
 	return dataset
+
 train_path = os.path.join(TFR_DIR, "train")
 test_path = os.path.join(TFR_DIR, "test")
 
@@ -110,7 +113,7 @@ except Exception as e:
 	print(str(e))
 	exit(0)
 
-
+# we will retrain last 5 layers of VGG16 model
 keras_vgg = tf.keras.applications.VGG16(input_shape=(HEIGHT, WIDTH, 3), include_top=False)
 
 output = keras_vgg.output
@@ -134,8 +137,8 @@ estimator = tf.keras.estimator.model_to_estimator(model, config=config)
 
 #logging_hook = tf.train.LoggingTensorHook({"loss" : loss, "accuracy" : accuracy}, every_n_iter=10)
 
-oct_train_in = lambda:dataset_input_fn(training_filenames, labels, shuffle=True, batch_size=BATCH_SIZE, buffer_size=2048, num_epochs=EPOCHS, prefetch_buffer_size=4)
-train_spec = tf.estimator.TrainSpec(input_fn=oct_train_in, max_steps=10000)
+oct_train_in = lambda:dataset_input_fn(training_filenames, labels, shuffle=True, batch_size=BATCH_SIZE, buffer_size=2048, num_epochs=EPOCHS, prefetch_buffer_size=PREFETCH)
+train_spec = tf.estimator.TrainSpec(input_fn=oct_train_in, max_steps=TRAIN_STEPS)
 
 # estimator.train(input_fn=oct_train_in, hooks=[time_hist])
 
