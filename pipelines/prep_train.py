@@ -66,7 +66,7 @@ def dp_inf_pipe(
         ]
     ).apply(gcp.use_gcp_secret('user-gcp-sa'))
 
-  train.set_gpu_request('2')
+  train.set_gpu_limit('2')
 
 if __name__ == '__main__':
   import kfp.compiler as compiler
