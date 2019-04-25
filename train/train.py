@@ -147,3 +147,13 @@ eval_spec = tf.estimator.EvalSpec(input_fn=oct_test_in)
 
 tf.estimator.train_and_evaluate(estimator, train_spec, eval_spec)
 #estimator.evaluate(input_fn=oct_test_in)
+
+def serving_input_receiver_fn():
+	inputs = {
+		'image': tf.placeholder(tf.float32, [None, HEIGHT, WIDTH, 1]),
+		}
+	return tf.estimator.export.ServingInputReceiver(inputs, inputs)
+
+estimator.export_savedmodel(
+	MODEL_DIR,
+	serving_input_receiver_fn=serving_input_receiver_fn)
