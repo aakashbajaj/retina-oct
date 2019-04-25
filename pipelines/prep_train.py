@@ -3,8 +3,8 @@ import kfp.gcp as gcp
 
 
 @dsl.pipeline(
-  name='Data Preparation',
-  description='Preprocessing Image Data'
+  name='Retinal_OCT',
+  description='Retinal OCT detection'
 )
 def dp_inf_pipe(
   inp_dir: dsl.PipelineParam = dsl.PipelineParam(name='input-dir', value='YOUR_GCS_INPDIR_HERE'),
@@ -27,46 +27,46 @@ def dp_inf_pipe(
 #   pred_inp_dir: dsl.PipelineParam = dsl.PipelineParam(name='pred_inp_dir', value='INPUT DIRECTORY FOR PREDICTION'),
 #   model_location: dsl.PipelineParam = dsl.PipelineParam(name='model_location', value='TRAINED_MODEL_LOCATION'),
 #   inf_batch_size: dsl.PipelineParam = dsl.PipelineParam(name='inf_batch_size', value=10)
-  ):
+):
 
-  data_prep = dsl.ContainerOp(
-      name='data_prep',
-      image='gcr.io/speedy-aurora-193605/oct_prep:v1',
-      arguments=["--inp-dir", inp_dir,
-          "--out-dir", out_dir,
-          "--num-shards", num_shards,
-          "--split-flag", split_flag,
-          "--train-split", train_split,
-          "--seed", seed,
-          "--height", height,
-          "--width", width,
-          "--fraction", fraction
-          ],
+  dataprep = dsl.ContainerOp(
+    name='dataprep',
+    image='gcr.io/speedy-aurora-193605/oct_prep:v1',
+    arguments=["--inp-dir", inp_dir,
+      "--out-dir", out_dir,
+      "--num-shards", num_shards,
+      "--split-flag", split_flag,
+      "--train-split", train_split,
+      "--seed", seed,
+      "--height", height,
+      "--width", width,
+      "--fraction", fraction
+      ],
       # file_outputs={'output': '/tmp/output'}
 
       ).apply(gcp.use_gcp_secret('user-gcp-sa'))
 
-  # data_prep.set_gpu_limit(2)
-  # data_prep.set_memory_request('G')
-  # data_prep.set_cpu_request('2')
+  # oct_data_prep.set_gpu_limit(2)
+  # oct_data_prep.set_memory_request('G')
+  dataprep.set_cpu_request('2')
 
-    train = dsl.ContainerOp(
-        name='train',
-        image='gcr.io/speedy-aurora-193605/oct_train:v1',
-        arguments=["--tfr-dir", out_dir,
-            "--model-dir", model_dir,
-            "--label-list", label_list_location,
-            "--epochs", epochs,
-            "--batch", batch_size,
-            "--train-steps", train_steps,
-            "--prefetch", prefetch_buffer_size,
-            "--height", height,
-            "--width", width,
+  train = dsl.ContainerOp(
+    name='train',
+    image='gcr.io/speedy-aurora-193605/oct_train:v1',
+    arguments=["--tfr-dir", out_dir,
+        "--model-dir", model_dir,
+        "--label-list", label_list_location,
+        "--epochs", epochs,
+        "--batch", batch_size,
+        "--train-steps", train_steps,
+        "--prefetch", prefetch_buffer_size,
+        "--height", height,
+        "--width", width
         ]
     ).apply(gcp.use_gcp_secret('user-gcp-sa'))
-
-    train.after(data_prep)
-    train.set_gpu_limit('2')
+      
+  train.set_gpu_limit('2')
+  train.after(dataprep)
 
 if __name__ == '__main__':
   import kfp.compiler as compiler
