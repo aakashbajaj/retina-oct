@@ -50,8 +50,8 @@ def dp_inf_pipe(
   # data_prep.set_memory_request('G')
   # data_prep.set_cpu_request('2')
 
-  train = dsl.ContainerOp(
-      name='train',
+    train = dsl.ContainerOp(
+        name='train',
         image='gcr.io/speedy-aurora-193605/oct_train:v1',
         arguments=["--tfr-dir", out_dir,
             "--model-dir", model_dir,
@@ -62,11 +62,11 @@ def dp_inf_pipe(
             "--prefetch", prefetch_buffer_size,
             "--height", height,
             "--width", width,
-          
         ]
     ).apply(gcp.use_gcp_secret('user-gcp-sa'))
 
-  train.set_gpu_limit('2')
+    train.after(data_prep)
+    train.set_gpu_limit('2')
 
 if __name__ == '__main__':
   import kfp.compiler as compiler
