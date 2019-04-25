@@ -70,4 +70,4 @@ def dp_inf_pipe(
 
 if __name__ == '__main__':
   import kfp.compiler as compiler
-  compiler.Compiler().compile(dp_inf_pipe, __file__[:-3] + '_np_lim.tar.gz')
+  compiler.Compiler().compile(dp_inf_pipe, __file__[:-3] + '_gpu.tar.gz')
