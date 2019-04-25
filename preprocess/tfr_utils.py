@@ -10,6 +10,7 @@ import logging
 from xml.dom import minidom
 
 import tensorflow.gfile as tf_reader
+from tensorflow.python.keras.preprocessing.image import img_to_array
 
 def _bytes_feature(value):
 	return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
@@ -24,7 +25,8 @@ def _load_image(image_path, height, width, ann_dir):
 			if ann_dir != "":
 				image = _get_ann_images(path, image, ann_dir)
 			image = cv2.resize(image, (width, height), interpolation=cv2.INTER_AREA)
-			return image.astype(np.float32)
+			im = np.array(img_to_array(image) / 255.)
+			return im
 
 
 	except Exception as e:
