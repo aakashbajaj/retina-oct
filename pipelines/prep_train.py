@@ -37,6 +37,7 @@ def dp_inf_pipe(
       "--num-shards", num_shards,
       "--split-flag", split_flag,
       "--train-split", train_split,
+      "--label-list", label_list_location,
       "--seed", seed,
       "--height", height,
       "--width", width,
