@@ -113,6 +113,14 @@ except Exception as e:
 	print(str(e))
 	exit(0)
 
+try:
+	with tf_reader.GFile(LABEL_LIST, 'rb') as fl:
+		labels_bytes = fl.read()
+		labels_json = labels_bytes.decode('utf8')
+
+		data = json.loads(labels_json)
+		print(data)
+
 # we will retrain last 5 layers of VGG16 model
 keras_vgg = tf.keras.applications.VGG16(input_shape=(HEIGHT, WIDTH, 3), include_top=False)
 
@@ -130,6 +138,7 @@ model.compile(loss='categorical_crossentropy',
 		metrics=['accuracy'])
 
 NUM_GPUS = get_available_gpus()
+print("\n{0} GPUs available".format(NUM_GPUS))
 
 strategy = tf.contrib.distribute.MirroredStrategy(num_gpus=NUM_GPUS)
 config = tf.estimator.RunConfig(train_distribute=strategy, model_dir=MODEL_DIR)
