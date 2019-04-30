@@ -106,12 +106,12 @@ if tf_reader.IsDirectory(test_path):
 		testing_filenames.append(filepath)
 
 import json
-try:
-	with open(LABEL_LIST, 'r') as fl:
-		labels = json.load(fl)
-except Exception as e:
-	print(str(e))
-	exit(0)
+# try:
+# 	with open(LABEL_LIST, 'r') as fl:
+# 		labels = json.load(fl)
+# except Exception as e:
+# 	print(str(e))
+# 	exit(1)
 
 try:
 	with tf_reader.GFile(LABEL_LIST, 'rb') as fl:
@@ -120,6 +120,9 @@ try:
 
 		data = json.loads(labels_json)
 		print(data)
+except Exception as e:
+	print(str(e))
+	exit(1)
 
 # we will retrain last 5 layers of VGG16 model
 keras_vgg = tf.keras.applications.VGG16(input_shape=(HEIGHT, WIDTH, 3), include_top=False)
