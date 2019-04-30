@@ -118,7 +118,7 @@ try:
 		labels_bytes = fl.read()
 		labels_json = labels_bytes.decode('utf8')
 
-		data = json.loads(labels_json)
+		labels = json.loads(labels_json)
 		print(data)
 except Exception as e:
 	print(str(e))

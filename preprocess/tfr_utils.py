@@ -54,6 +54,8 @@ def build_example_list_tf(input_dir, seed):
 	class_cnt = 0
 
 	for classname in tf.gfile.ListDirectory(input_dir):
+		if classname.endswith("/"):
+			classname = classname[:-1]
 		class_dir = os.path.join(input_dir, classname)
 		
 		if tf.gfile.IsDirectory(class_dir):	
