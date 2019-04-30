@@ -21,7 +21,7 @@ def dp_inf_pipe(
   epochs: dsl.PipelineParam = dsl.PipelineParam(name='num-epochs', value=1),
   batch_size: dsl.PipelineParam = dsl.PipelineParam(name='batch-size', value=64),
   train_steps: dsl.PipelineParam = dsl.PipelineParam(name='train-steps', value=10000),
-  prefetch_buffer_size: dsl.PipelineParam = dsl.PipelineParam(name='prefetch-buffer', value=None),
+  prefetch_buffer_size: dsl.PipelineParam = dsl.PipelineParam(name='prefetch-buffer', value=4),
   label_list_location: dsl.PipelineParam = dsl.PipelineParam(name='label_list_location', value='JSON_FILE_CONTAINING_LABELS'),
 
 #   pred_inp_dir: dsl.PipelineParam = dsl.PipelineParam(name='pred_inp_dir', value='INPUT DIRECTORY FOR PREDICTION'),
