@@ -1,11 +1,12 @@
-FROM tensorflow/tensorflow:latest-py3
+FROM nvidia/cuda:10.0-cudnn7-devel
 
 WORKDIR /app
 
 COPY train.py ./
 
-RUN	apt-get update && \
-	apt-get install -y libxrender1 && \
-	apt install -y libglib2.0-0 libsm6 libxext6
+RUN apt-get update && \
+	apt-get install python3 python3-pip -y && \
+	pip3 install --upgrade pip && \
+	pip install tensorflow-gpu
 
 ENTRYPOINT ["python3", "train.py"]
