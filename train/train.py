@@ -119,7 +119,7 @@ try:
 		labels_json = labels_bytes.decode('utf8')
 
 		labels = json.loads(labels_json)
-		print(data)
+		print(labels)
 except Exception as e:
 	print(str(e))
 	exit(1)
