@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 
-def dataset_input_fn(filenames, labels, image_size=(HEIGHT,WIDTH,1),shuffle=False, batch_size=64, num_epochs=None,
+def dataset_input_fn(filenames, labels, image_size=(224, 224,1),shuffle=False, batch_size=64, num_epochs=None,
 		buffer_size=4096, prefetch_buffer_size=None):
 	dataset = tf.data.TFRecordDataset(filenames)
 
