@@ -21,7 +21,7 @@ def dp_inf_pipe(
   epochs: dsl.PipelineParam = dsl.PipelineParam(name='num-epochs', value=1),
   batch_size: dsl.PipelineParam = dsl.PipelineParam(name='batch-size', value=64),
   train_steps: dsl.PipelineParam = dsl.PipelineParam(name='train-steps', value=10000),
-  prefetch_buffer_size: dsl.PipelineParam = dsl.PipelineParam(name='prefetch-buffer', value=4),
+  prefetch_buffer_size: dsl.PipelineParam = dsl.PipelineParam(name='prefetch-buffer', value=-1),
   label_list_location: dsl.PipelineParam = dsl.PipelineParam(name='label_list_location', value='JSON_FILE_CONTAINING_LABELS'),
 
 #   pred_inp_dir: dsl.PipelineParam = dsl.PipelineParam(name='pred_inp_dir', value='INPUT DIRECTORY FOR PREDICTION'),
@@ -31,7 +31,7 @@ def dp_inf_pipe(
 
   dataprep = dsl.ContainerOp(
     name='dataprep',
-    image='gcr.io/speedy-aurora-193605/oct_prep:v1',
+    image='gcr.io/speedy-aurora-193605/oct_prep:v2',
     arguments=["--inp-dir", inp_dir,
       "--out-dir", out_dir,
       "--num-shards", num_shards,
@@ -49,11 +49,11 @@ def dp_inf_pipe(
 
   # oct_data_prep.set_gpu_limit(2)
   # oct_data_prep.set_memory_request('G')
-  dataprep.set_cpu_request('2')
+  # dataprep.set_cpu_request('2')
 
   train = dsl.ContainerOp(
     name='train',
-    image='gcr.io/speedy-aurora-193605/oct_train:v1',
+    image='gcr.io/speedy-aurora-193605/oct_train12:v2',
     arguments=["--tfr-dir", out_dir,
         "--model-dir", model_dir,
         "--label-list", label_list_location,
@@ -71,4 +71,4 @@ def dp_inf_pipe(
 
 if __name__ == '__main__':
   import kfp.compiler as compiler
-  compiler.Compiler().compile(dp_inf_pipe, __file__[:-3] + '_gpu.tar.gz')
+  compiler.Compiler().compile(dp_inf_pipe, __file__[:-3] + '_tf12_c9.tar.gz')
