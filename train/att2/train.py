@@ -1,5 +1,6 @@
 import numpy as np
 import tensorflow as tf
+import tensorflow.gfile as tf_reader
 from tensorflow.python.platform import tf_logging as logging
 
 import data_utils
