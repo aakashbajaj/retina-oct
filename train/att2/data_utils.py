@@ -22,13 +22,13 @@ def dataset_input_fn(filenames, labels, image_size=(HEIGHT,WIDTH,1),shuffle=Fals
 		return (img_arr, tf.one_hot([label], num_classes))
 
 	dataset = dataset.map(tfr_parser, num_parallel_calls=os.cpu_count())
-    dataset = dataset.shuffle(buffer_size=buffer_size)
-    dataset = dataset.batch(batch_size)
-    dataset = dataset.repeat(num_epochs)
+	dataset = dataset.shuffle(buffer_size=buffer_size)
+	dataset = dataset.batch(batch_size)
+	dataset = dataset.repeat(num_epochs)
 
-    dataset = dataset.prefetch(buffer_size=prefetch_buffer_size)
+	dataset = dataset.prefetch(buffer_size=prefetch_buffer_size)
 
-    iterator = dataset.make_one_shot_iterator()
-    features, labels = iterator.get_next()
+	iterator = dataset.make_one_shot_iterator()
+	features, labels = iterator.get_next()
  
-    return features, labels
+	return features, labels
