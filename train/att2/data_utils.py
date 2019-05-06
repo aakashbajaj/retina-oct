@@ -1,9 +1,11 @@
 import tensorflow as tf
 import numpy as np
+import os
 
 def dataset_input_fn(filenames, labels, image_size=(224, 224,1),shuffle=False, batch_size=64, num_epochs=None,
 		buffer_size=4096, prefetch_buffer_size=None):
 	dataset = tf.data.TFRecordDataset(filenames)
+	num_classes = len(labels)
 
 	def tfr_parser(data_record):
 		feature_def = {
@@ -28,7 +30,9 @@ def dataset_input_fn(filenames, labels, image_size=(224, 224,1),shuffle=False, b
 
 	dataset = dataset.prefetch(buffer_size=prefetch_buffer_size)
 
-	iterator = dataset.make_one_shot_iterator()
-	features, labels = iterator.get_next()
+	return dataset
+
+	# iterator = dataset.make_one_shot_iterator()
+	# features, labels = iterator.get_next()
  
-	return features, labels
+	# return features, labels
