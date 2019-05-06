@@ -48,18 +48,18 @@ def _convert_to_example(filename, image_buffer, label_int, label_str, height, wi
 	# image_format = 'JPEG'
 
 	example = tf.train.Example(
-	features=tf.train.Features(
-		feature={
-			'filename': _bytes_feature(os.path.basename(filename)),
-			'image': _bytes_feature(image_buffer),
-			'label': _int64_feature(label_int),  # model expects 1-based
-			'classname': _bytes_feature(label_str),
-			# 'image/height': _int64_feature(height),
-			# 'image/width': _int64_feature(width),
-			# 'image/colorspace': _bytes_feature(colorspace),
-			# 'image/channels': _int64_feature(channels),
-			# 'image/format': _bytes_feature(image_format),
-			}))
+		features=tf.train.Features(
+			feature={
+				'filename': _bytes_feature(filename.encode('utf-8')),
+				'image': _bytes_feature(image_buffer),
+				'label': _int64_feature(int(label_int)),  # model expects 1-based
+				'classname': _bytes_feature(label_str.encode('utf-8')),
+				# 'image/height': _int64_feature(height),
+				# 'image/width': _int64_feature(width),
+				# 'image/colorspace': _bytes_feature(colorspace),
+				# 'image/channels': _int64_feature(channels),
+				# 'image/format': _bytes_feature(image_format),
+				}))
 
 	return example
 
@@ -79,8 +79,7 @@ class ImageCoder(object):
 		self._resize_area = tf.image.resize_images(self._decode_jpeg, size=[height, width], method=tf.image.ResizeMethod.AREA)
 
 	def decode_jpeg(self, image_data):
-		image = self._sess.run(
-		    self._resize_area, feed_dict={self._decode_jpeg_data: image_data})
+		image = self._sess.run(self._resize_area, feed_dict={self._decode_jpeg_data: image_data})
 		
 		assert len(image.shape) == 3
 		assert image.shape[2] == 1
@@ -102,7 +101,7 @@ def _get_image_data(filename, coder):
 	width: integer, image width in pixels.
 	"""
 	# Read the image file.
-	with tf.gfile.FastGFile(filename, 'r') as ifp:
+	with tf.gfile.FastGFile(filename, 'rb') as ifp:
 		image_data = ifp.read()
 
 	# Decode the RGB JPEG.
@@ -125,22 +124,28 @@ def convert_to_example(csvline, categories, resize_image_dims):
 	Yields:
 	serialized TF example if the label is in categories
 	"""
-	logging.info(csvline.encode('ascii', 'ignore'))
-	filename, label = csvline.encode('ascii', 'ignore').split(',')
+	# logging.info(csvline.encode('ascii', 'ignore'))
+	# filename, label = csvline.encode('ascii', 'ignore').split(',')
+	filename, label = csvline.split(',')
 	# print(filename, label)
 	logging.info("{} with {}".format(filename, label))
 
-	fl1 = tf_reader.GFile('gs://kfp-testing/retin_oct/debug/log1.txt', 'w')
-	fl1.write("{} with {}".format(filename, label))
-	fl1.close()
+	# fl1 = tf_reader.GFile('gs://kfp-testing/retin_oct/debug/log1.txt', 'a')
+	# fl1.write("{} with {}".format(filename, label))
+	# fl1.close()
+	
 	filename = filename.rstrip()
 	label = label.rstrip()
+
+	is_image_file = filename.endswith(".jpeg") or filename.endswith(".jpg") or filename.endswith(".png") or filename.endswith(".tif")
 	
-	if label in categories:
+	if label in categories and is_image_file:
 		logging.info("processed {} with {}".format(filename, label))
-		fl2 = tf_reader.GFile('gs://kfp-testing/retin_oct/debug/log2.txt', 'w')
-		fl2.write("{} with {}".format(filename, label))
-		fl2.close()
+		
+		# fl2 = tf_reader.GFile('gs://kfp-testing/retin_oct/debug/log2.txt', 'a')
+		# fl2.write("{} with {}".format(filename, label))
+		# fl2.close()
+		
 		# ignore labels not in categories list
 		coder = ImageCoder()
 		image_buffer, im_height, im_width = _get_image_data(filename, coder)
@@ -241,7 +246,10 @@ if __name__ == '__main__':
 		'job_name': JOBNAME,
 		'project': PROJECT,
 		'teardown_policy': 'TEARDOWN_ALWAYS',
-		'save_main_session': True
+		'save_main_session': True,
+		'machine_type': 'n1-standard-16',
+		'max_num_workers': 20,
+		'num_workers': 4
 		}
 	opts = beam.pipeline.PipelineOptions(flags=[], **options)
 
@@ -256,4 +264,4 @@ if __name__ == '__main__':
 				| '{}_convert'.format(step) >>
 				beam.FlatMap(lambda line: convert_to_example(line, reverse_labels, (HEIGHT, WIDTH)))
 				| '{}_write_tfr'.format(step) >> 
-				beam.io.tfrecordio.WriteToTFRecord(os.path.join(OUTPUT_DIR, step+"/"), num_shards=NUM_SHARDS))
+				beam.io.tfrecordio.WriteToTFRecord(os.path.join(OUTPUT_DIR, (step+"/{}").format(step)), num_shards=NUM_SHARDS))

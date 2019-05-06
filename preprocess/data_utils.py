@@ -39,7 +39,7 @@ def get_example_share(examples, train_split):
 def write_file_csv(targets, data_files):
 	for step in targets:		
 		try:
-			with open(data_files['{}_csv'.format(step)], 'w') as fl:
+			with tf.gfile.GFile(data_files['{}_csv'.format(step)], 'w') as fl:
 				writer = csv.writer(fl)
 				writer.writerows(data_files['{}_examples'.format(step)])
 		except Exception as e:
