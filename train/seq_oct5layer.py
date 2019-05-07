@@ -165,7 +165,7 @@ if __name__ == '__main__':
 	strategy = tf.contrib.distribute.MirroredStrategy(num_gpus=2)
 	config = tf.estimator.RunConfig(train_distribute=strategy)
 
-	oct_classifier = tf.train.Estimator(
+	oct_classifier = tf.estimator.Estimator(
 		model_fn=cnn_model_fn,
 		model_dir="/tmp/oct_classifier",
 		config=config)
