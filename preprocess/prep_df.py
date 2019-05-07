@@ -247,7 +247,7 @@ if __name__ == '__main__':
 		'project': PROJECT,
 		'teardown_policy': 'TEARDOWN_ALWAYS',
 		'save_main_session': True,
-		'machine_type': 'n1-standard-16',
+		'machine_type': 'n1-standard-8',
 		'max_num_workers': 20,
 		'num_workers': 4
 		}

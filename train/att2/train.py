@@ -9,6 +9,11 @@ from functools import partial
 import data_utils
 import tf_model
 
+def get_available_gpus():
+    local_device_protos = device_lib.list_local_devices()
+    dev_list = [x.name for x in local_device_protos if x.device_type == 'GPU']
+    return len(dev_list)
+
 logging.set_verbosity(logging.INFO)
 logging.log(logging.INFO, "Tensorflow version " + tf.__version__)
 
@@ -54,14 +59,14 @@ model.compile(loss='categorical_crossentropy',
 		optimizer=tf.train.AdamOptimizer(),
 		metrics=['accuracy'])
 
-NUM_GPUS = 2
 train_path = "gs://kfp-testing/retin_oct/convkfp/train"
 test_path = "gs://kfp-testing/retin_oct/convkfp/test"
 
 training_filenames = []
 testing_filenames = []
 
-# NUM_GPUS = get_available_gpus()
+# NUM_GPUS = 2
+NUM_GPUS = get_available_gpus()
 print("\n{0} GPUs available".format(NUM_GPUS))
 
 strategy = tf.contrib.distribute.MirroredStrategy(num_gpus=NUM_GPUS)
