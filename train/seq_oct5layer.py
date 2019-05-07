@@ -55,7 +55,7 @@ def cnn_model_fn(features, labels, mode):
 	logits = tf.layers.dense(inputs=drp4, units=4)
 
 	predictions = {
-		"classes": tf.argmax(inputs=logits, axis=1),
+		"classes": tf.argmax(input=logits, axis=1),
 		"probabilities": tf.nn.softmax(logits, name="softmax_tensor")
 	}
 
