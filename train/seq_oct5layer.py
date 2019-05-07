@@ -3,6 +3,8 @@ import numpy as np
 import json
 import os
 
+import tensorflow.gfile as tf_reader
+
 tf.logging.set_verbosity(tf.logging.INFO)
 
 def cnn_model_fn(features, labels, mode):
