@@ -134,8 +134,8 @@ def dataset_input_fn(
 
 if __name__ == '__main__':
 
-		TFR_DIR = 
-	LABEL_LIST = 
+	TFR_DIR = "gs://kfp-testing/retin_oct/conv_df2/tfrecords"
+	LABEL_LIST = "gs://kfp-testing/retin_oct/conv_df2/labels.json"
 
 	train_path = os.path.join(TFR_DIR, "train")
 
