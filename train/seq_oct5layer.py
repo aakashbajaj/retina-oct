@@ -189,11 +189,11 @@ if __name__ == '__main__':
 		# prefetch_buffer_size=PREFETCH
 		)
 
-	oct_classifier.train(
-    	input_fn=oct_train_in,
-    	steps=1000,
-    	# hooks=[logging_hook]
-    	)
+	# oct_classifier.train(
+ #    	input_fn=oct_train_in,
+ #    	steps=1000,
+ #    	# hooks=[logging_hook]
+ #    	)
 
 	oct_test_in = lambda: dataset_input_fn(
 		testing_filenames,
