@@ -173,8 +173,8 @@ if __name__ == '__main__':
 
 	tensors_to_log = {"probabilities": "softmax_tensor"}
 
-	logging_hook = tf.train.LoggingTensorHook(
-		tensors=tensors_to_log, every_n_iter=50)
+	# logging_hook = tf.train.LoggingTensorHook(
+	# 	tensors=tensors_to_log, every_n_iter=50)
 
 	oct_train_in = lambda:dataset_input_fn(
 		training_filenames,
@@ -189,4 +189,5 @@ if __name__ == '__main__':
 	oct_classifier.train(
     	input_fn=oct_train_in,
     	steps=1000,
-    	hooks=[logging_hook])
+    	# hooks=[logging_hook]
+    	)
