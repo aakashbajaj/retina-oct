@@ -76,6 +76,7 @@ class ImageCoder(object):
 		# Initializes function that decodes RGB JPEG data.
 		self._decode_jpeg_data = tf.placeholder(dtype=tf.string)
 		self._decode_jpeg = tf.image.decode_jpeg(self._decode_jpeg_data, channels=channels)
+		# self._batch_img = tf.expand_dims(self._decode_jpeg, 0)
 		self._resize_area = tf.image.resize_images(self._decode_jpeg, size=[height, width], method=tf.image.ResizeMethod.AREA)
 
 	def decode_jpeg(self, image_data):
@@ -101,8 +102,11 @@ def _get_image_data(filename, coder):
 	width: integer, image width in pixels.
 	"""
 	# Read the image file.
-	with tf.gfile.FastGFile(filename, 'rb') as ifp:
+	with tf.gfile.GFile(filename, 'rb') as ifp:
 		image_data = ifp.read()
+
+	#decode(image_data)
+	#resize(image_data)
 
 	# Decode the RGB JPEG.
 	image = coder.decode_jpeg(image_data)
@@ -113,7 +117,7 @@ def _get_image_data(filename, coder):
 	width = image.shape[1]
 	assert image.shape[2] == 1
 
-	return image_data, height, width
+	return image.tostring(), height, width
 
 def convert_to_example(csvline, categories, resize_image_dims):
 	"""Parse a line of CSV file and convert to TF Record.
