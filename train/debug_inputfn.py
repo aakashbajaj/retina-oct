@@ -225,8 +225,9 @@ if __name__ == '__main__':
 	next_elem = iter.get_next()
 
 	with tf.Session() as sess:
- 		features, label, filename, classname = sess.run(next_elem)
- 		print(features.shape)
- 		print(label)
- 		print(filename)
- 		print(classname)
+		for i in range(10):
+	 		features, label, filename, classname = sess.run(next_elem)
+	 		print(features.shape)
+	 		print(label)
+	 		print(filename)
+	 		print(classname)
