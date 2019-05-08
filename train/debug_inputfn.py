@@ -152,7 +152,7 @@ def tfr_parser(data_record):
 	num_classes = 4
 
 	img_arr = tf.decode_raw(sample['image'], tf.float32)
-	img_arr = tf.reshape(img_arr, image_size)
+	# img_arr = tf.reshape(img_arr, image_size)
 	label = tf.cast(sample['label'], tf.int64)
 
 	filename = sample['filename']
