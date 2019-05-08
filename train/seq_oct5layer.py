@@ -65,11 +65,11 @@ def cnn_model_fn(features, labels, mode):
 	loss = tf.nn.softmax_cross_entropy_with_logits_v2(
 		labels=labels, logits=logits)
 
-	accuracy = tf.metrics.accuracy(
-		labels=labels, predictions=predictions["classes"])
+	# accuracy = tf.metrics.accuracy(
+	# 	labels=labels, predictions=predictions["classes"])
 
-	logging_hook = tf.train.LoggingTensorHook(
-		{"loss" : loss, "accuracy" : accuracy}, every_n_iter=10)
+	# logging_hook = tf.train.LoggingTensorHook(
+	# 	{"loss" : loss, "accuracy" : accuracy}, every_n_iter=10)
 
 	if mode == tf.estimator.ModeKeys.TRAIN:
 		optimizer = tf.train.AdamOptimizer()
@@ -78,7 +78,8 @@ def cnn_model_fn(features, labels, mode):
 			global_step=tf.train.get_global_step())
 
 	return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op,
-		training_hooks = [logging_hook])
+		# training_hooks = [logging_hook]
+		)
 
 	eval_metric_ops = {
 		"accuracy": tf.metrics.accuracy(
