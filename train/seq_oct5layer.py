@@ -45,7 +45,7 @@ def cnn_model_fn(features, labels, mode):
 	drp3 = tf.layers.dropout(
 		inputs=bn3, rate=0.25, training=mode == tf.estimator.ModeKeys.TRAIN)
 
-	flt = tf.layers.Flatten()(drp3)
+	flt = tf.layers.flatten(inputs=drp3)
 
 	dns1 = tf.layers.dense(inputs=flt, units=32, activation=tf.nn.relu)
 	dense_bn = tf.layers.batch_normalization(inputs=dns1, training=(mode == tf.estimator.ModeKeys.TRAIN))
