@@ -80,9 +80,7 @@ def cnn_model_fn(features, labels, mode):
 		# training_hooks = [logging_hook]
 
 	eval_metric_ops = {
-		"accuracy": tf.metrics.accuracy(
-		labels=labels,
-		predictions=predictions["classes"])
+		"accuracy": tf.metrics.accuracy(labels=tf.argmax(labels, axis=1), predictions=predictions["classes"])
 	}
 	
 	return tf.estimator.EstimatorSpec(
