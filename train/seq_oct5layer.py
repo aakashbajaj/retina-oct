@@ -63,7 +63,7 @@ def cnn_model_fn(features, labels, mode):
 		return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions)
 
 	loss = tf.losses.softmax_cross_entropy(
-		labels=labels, logits=logits)
+		onehot_labels=labels, logits=logits)
 
 	accuracy = tf.metrics.accuracy(
 		labels=labels, predictions=predictions["classes"])
