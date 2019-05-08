@@ -94,9 +94,9 @@ def dataset_input_fn(
 	labels,
 	image_size=(224,224,1),
 	shuffle=False,
-	batch_size=64,
+	batch_size=32,
 	num_epochs=None,
-	buffer_size=4096,
+	buffer_size=320,
 	prefetch_buffer_size=None):
 
 	dataset = tf.data.TFRecordDataset(filenames)
