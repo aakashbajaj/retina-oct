@@ -139,8 +139,10 @@ if __name__ == '__main__':
 	LABEL_LIST = "gs://kfp-testing/retin_oct/conv_rskfp/labels.json"
 
 	train_path = os.path.join(TFR_DIR, "train")
+	test_path = os.path.join(TFR_DIR, "test")
 
 	training_filenames = []
+	testing_filenames = []
 
 	if tf_reader.IsDirectory(train_path):
 		for filename in tf.gfile.ListDirectory(train_path):
@@ -149,6 +151,11 @@ if __name__ == '__main__':
 	else:
 		print("Invalid training directory. Exiting.......\n")
 		exit(0)
+
+	if tf_reader.IsDirectory(test_path):
+		for filename in tf.gfile.ListDirectory(test_path):
+			filepath = os.path.join(test_path, filename)
+			testing_filenames.append(filepath)
 
 	try:
 		with tf_reader.GFile(LABEL_LIST, 'rb') as fl:
@@ -189,3 +196,9 @@ if __name__ == '__main__':
     	steps=1000,
     	# hooks=[logging_hook]
     	)
+
+	oct_test_in = lambda: dataset_input_fn(
+		testing_filenames,
+		labels)
+	res = oct_classifier.evaluate(input_fn=oct_test_in, steps=1)
+	print(res)
