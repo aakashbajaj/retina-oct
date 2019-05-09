@@ -58,20 +58,25 @@ def cnn_model_fn(features, labels, mode):
 	predictions = {
 		"classes": tf.argmax(input=logits, axis=1),
 		"probabilities": tf.nn.softmax(logits, name="softmax_tensor")
+		# "accuracy": tf.metrics.accuracy(labels=tf.argmax(labels, axis=1), predictions=tf.argmax(input=logits, axis=1))
 	}
+
+	train_accuracy =  tf.metrics.accuracy(labels=tf.argmax(labels, axis=1), predictions=predictions["classes"])
 
 	if mode == tf.estimator.ModeKeys.PREDICT:
 		return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions)
 
-	# red_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits))
-	loss = tf.losses.softmax_cross_entropy(onehot_labels=labels, logits=logits)
-	# loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
+	fix_labels = tf.stop_gradient(labels)
+
+	loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=fix_labels, logits=logits))
+	# loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits)
+	# loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.argmax(labels, axis=1), logits=logits)
 
 	# accuracy = tf.metrics.accuracy(
 	# 	labels=labels, predictions=predictions["classes"])
 
-	# logging_hook = tf.train.LoggingTensorHook(
-	# 	{"loss" : loss, "accuracy" : accuracy}, every_n_iter=10)
+	logging_hook = tf.train.LoggingTensorHook(
+		{"loss" : loss, "accuracy" : train_accuracy}, every_n_iter=10)
 
 	if mode == tf.estimator.ModeKeys.TRAIN:
 		optimizer = tf.train.AdamOptimizer()
@@ -79,8 +84,8 @@ def cnn_model_fn(features, labels, mode):
 			loss=loss,
 			global_step=tf.train.get_global_step())
 
-		return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op)
-		# training_hooks = [logging_hook]
+		return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op,
+			training_hooks = [logging_hook])
 
 	eval_metric_ops = {
 		"accuracy": tf.metrics.accuracy(labels=tf.argmax(labels, axis=1), predictions=predictions["classes"])
@@ -171,10 +176,11 @@ if __name__ == '__main__':
 
 	strategy = tf.contrib.distribute.MirroredStrategy(num_gpus=2)
 	config = tf.estimator.RunConfig(train_distribute=strategy)
+	# config = tf.estimator.RunConfig()
 
 	oct_classifier = tf.estimator.Estimator(
 		model_fn=cnn_model_fn,
-		model_dir="/tmp/oct_classifier",
+		model_dir="/tmp/oct_classifier_simple",
 		config=config)
 
 	tensors_to_log = {"probabilities": "softmax_tensor"}
@@ -194,12 +200,14 @@ if __name__ == '__main__':
 
 	oct_classifier.train(
     	input_fn=oct_train_in,
-    	steps=1000,
+    	# steps=1000,
+		max_steps=3000,
     	# hooks=[logging_hook]
     	)
 
 	oct_test_in = lambda: dataset_input_fn(
 		testing_filenames,
-		labels)
-	res = oct_classifier.evaluate(input_fn=oct_test_in, steps=5)
+		labels,
+		batch_size=10)
+	res = oct_classifier.evaluate(input_fn=oct_test_in, steps=100)
 	print(res)
