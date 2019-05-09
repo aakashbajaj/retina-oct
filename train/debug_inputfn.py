@@ -151,22 +151,23 @@ def tfr_parser(data_record):
 	image_size=(224,224,1)
 	num_classes = 4
 
+	# img_arr = sample['image']
 	img_arr = tf.decode_raw(sample['image'], tf.float32)
-	# img_arr = tf.reshape(img_arr, image_size)
+	img_arr = tf.reshape(img_arr, image_size)
 	label = tf.cast(sample['label'], tf.int64)
 
 	filename = sample['filename']
 	classname = sample['classname']
 
-	return (img_arr, tf.one_hot([label], num_classes), filename, classname)
+	return (img_arr, tf.one_hot(label, num_classes), filename, classname)
 
 
 if __name__ == '__main__':
 
-	TFR_DIR = "gs://kfp-testing/retin_oct/conv_df2/tfrecords"
-	LABEL_LIST = "gs://kfp-testing/retin_oct/conv_df2/labels.json"
+	TFR_DIR = "gs://kfp-testing/retin_oct/conv_9may/tfrecords"
+	LABEL_LIST = "gs://kfp-testing/retin_oct/conv_9may/labels.json"
 
-	train_path = os.path.join(TFR_DIR, "train")
+	train_path = os.path.join(TFR_DIR, "test")
 
 	training_filenames = []
 
@@ -177,6 +178,8 @@ if __name__ == '__main__':
 	else:
 		print("Invalid training directory. Exiting.......\n")
 		exit(0)
+
+	print(training_filenames)
 
 	try:
 		with tf_reader.GFile(LABEL_LIST, 'rb') as fl:
@@ -226,8 +229,9 @@ if __name__ == '__main__':
 
 	with tf.Session() as sess:
 		for i in range(10):
-	 		features, label, filename, classname = sess.run(next_elem)
-	 		print(features.shape)
-	 		print(label)
-	 		print(filename)
-	 		print(classname)
+			features, label, filename, classname = sess.run(next_elem)
+			print(features.shape)
+			print(label.shape)
+			print(label)
+			print(filename)
+			print(classname)

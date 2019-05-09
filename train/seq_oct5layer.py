@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import json
 import os
+import logging
 
 import tensorflow.gfile as tf_reader
 
@@ -62,7 +63,9 @@ def cnn_model_fn(features, labels, mode):
 	if mode == tf.estimator.ModeKeys.PREDICT:
 		return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions)
 
-	red_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits))
+	# red_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits))
+	loss = tf.losses.softmax_cross_entropy(onehot_labels=labels, logits=logits)
+	# loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
 
 	# accuracy = tf.metrics.accuracy(
 	# 	labels=labels, predictions=predictions["classes"])
@@ -76,16 +79,15 @@ def cnn_model_fn(features, labels, mode):
 			loss=loss,
 			global_step=tf.train.get_global_step())
 
-		return tf.estimator.EstimatorSpec(mode=mode, loss=red_loss, train_op=train_op)
+		return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op)
 		# training_hooks = [logging_hook]
 
-	eval_loss = tf.losses.softmax_cross_entropy(labels=labels, logits=logits)
 	eval_metric_ops = {
 		"accuracy": tf.metrics.accuracy(labels=tf.argmax(labels, axis=1), predictions=predictions["classes"])
 	}
 	
 	return tf.estimator.EstimatorSpec(
-		mode=mode, loss=eval_loss, eval_metric_ops=eval_metric_ops)
+		mode=mode, loss=loss, eval_metric_ops=eval_metric_ops)
 
 
 def dataset_input_fn(
@@ -111,12 +113,12 @@ def dataset_input_fn(
 		}
 
 		sample = tf.parse_single_example(data_record, feature_def)
-			
+
 		img_arr = tf.decode_raw(sample['image'], tf.float32)
 		img_arr = tf.reshape(img_arr, image_size)
 		label = tf.cast(sample['label'], tf.int64)
 
-		return (img_arr, tf.one_hot([label], num_classes))
+		return (img_arr, (tf.one_hot(label, num_classes)))
 
 	dataset = dataset.map(tfr_parser, num_parallel_calls=os.cpu_count())
 	
@@ -191,13 +193,13 @@ if __name__ == '__main__':
 		)
 
 	# oct_classifier.train(
- #    	input_fn=oct_train_in,
- #    	steps=1000,
- #    	# hooks=[logging_hook]
- #    	)
+    # 	input_fn=oct_train_in,
+    # 	steps=1000,
+    # 	# hooks=[logging_hook]
+    # 	)
 
 	oct_test_in = lambda: dataset_input_fn(
 		testing_filenames,
 		labels)
-	res = oct_classifier.evaluate(input_fn=oct_test_in, steps=1)
+	res = oct_classifier.evaluate(input_fn=oct_test_in, steps=5)
 	print(res)
