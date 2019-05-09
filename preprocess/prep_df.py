@@ -105,11 +105,9 @@ def _get_image_data(filename, coder):
 	with tf.gfile.GFile(filename, 'rb') as ifp:
 		image_data = ifp.read()
 
-	#decode(image_data)
-	#resize(image_data)
-
-	# Decode the RGB JPEG.
+	# Decode the JPEG.
 	image = coder.decode_jpeg(image_data)
+	im = np.array(img_to_array(image))/255.
 
 	# Check that image converted to RGB
 	assert len(image.shape) == 3
@@ -117,7 +115,7 @@ def _get_image_data(filename, coder):
 	width = image.shape[1]
 	assert image.shape[2] == 1
 
-	return image.tostring(), height, width
+	return im.tostring(), height, width
 
 def convert_to_example(csvline, categories, resize_image_dims):
 	"""Parse a line of CSV file and convert to TF Record.
