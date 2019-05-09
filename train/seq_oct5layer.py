@@ -68,7 +68,7 @@ def cnn_model_fn(features, labels, mode):
 
 	fix_labels = tf.stop_gradient(labels)
 
-	loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=fix_labels, logits=logits))
+	loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=fix_labels, logits=logits))
 	# loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits)
 	# loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.argmax(labels, axis=1), logits=logits)
 
@@ -84,8 +84,9 @@ def cnn_model_fn(features, labels, mode):
 			loss=loss,
 			global_step=tf.train.get_global_step())
 
-		return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op,
-			training_hooks = [logging_hook])
+		return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op, 
+		# training_hooks = [logging_hook]
+		)
 
 	eval_metric_ops = {
 		"accuracy": tf.metrics.accuracy(labels=tf.argmax(labels, axis=1), predictions=predictions["classes"])
