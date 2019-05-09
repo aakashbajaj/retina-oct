@@ -136,8 +136,8 @@ def dataset_input_fn(
 
 if __name__ == '__main__':
 
-	TFR_DIR = "gs://kfp-testing/retin_oct/conv_rskfp/tfrecords"
-	LABEL_LIST = "gs://kfp-testing/retin_oct/conv_rskfp/labels.json"
+	TFR_DIR = "gs://kfp-testing/retin_oct/conv_9may/tfrecords"
+	LABEL_LIST = "gs://kfp-testing/retin_oct/conv_9may/labels.json"
 
 	train_path = os.path.join(TFR_DIR, "train")
 	test_path = os.path.join(TFR_DIR, "test")
