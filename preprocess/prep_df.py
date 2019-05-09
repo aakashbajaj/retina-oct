@@ -78,7 +78,7 @@ class ImageCoder(object):
 		self._decode_jpeg_data = tf.placeholder(dtype=tf.string)
 		self._decode_jpeg = tf.image.decode_jpeg(self._decode_jpeg_data, channels=channels)
 		# self._batch_img = tf.expand_dims(self._decode_jpeg, 0)
-		self._resize_area = tf.image.resize_images(self._decode_jpeg, size=[height, width], method=tf.image.ResizeMethod.AREA)
+		self._resize_area = tf.image.resize_images(self._decode_jpeg, size=[height, width], method=tf.image.ResizeMethod.BICUBIC)
 
 	def decode_jpeg(self, image_data):
 		image = self._sess.run(self._resize_area, feed_dict={self._decode_jpeg_data: image_data})
