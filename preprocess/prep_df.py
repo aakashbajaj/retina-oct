@@ -17,6 +17,7 @@ import json
 import tensorflow.gfile as tf_reader
 
 import logging
+from tensorflow.python.keras.preprocessing.image import img_to_array
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
