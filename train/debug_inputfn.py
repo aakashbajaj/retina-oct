@@ -180,6 +180,7 @@ if __name__ == '__main__':
 		exit(0)
 
 	print(training_filenames)
+	training_filenames = [training_filenames[0]]
 
 	try:
 		with tf_reader.GFile(LABEL_LIST, 'rb') as fl:
@@ -227,11 +228,16 @@ if __name__ == '__main__':
 
 	next_elem = iter.get_next()
 
+	import cv2
 	with tf.Session() as sess:
 		for i in range(10):
 			features, label, filename, classname = sess.run(next_elem)
 			print(features.shape)
+
 			print(label.shape)
 			print(label)
 			print(filename)
 			print(classname)
+			cv2.imshow("image{}".format(i), features)
+
+		cv2.waitKey()
