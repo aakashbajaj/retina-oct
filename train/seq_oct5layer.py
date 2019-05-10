@@ -9,7 +9,7 @@ import tensorflow.gfile as tf_reader
 tf.logging.set_verbosity(tf.logging.INFO)
 
 def cnn_model_fn(features, labels, mode):
-	input_layer = tf.reshape(features, [-1,224,224,1])
+	input_layer = tf.reshape(features, [-1,256,256,1])
 
 	conv1 = tf.layers.conv2d(
 		inputs=input_layer,
@@ -99,7 +99,7 @@ def cnn_model_fn(features, labels, mode):
 def dataset_input_fn(
 	filenames,
 	labels,
-	image_size=(224,224,1),
+	image_size=(256,256,1),
 	shuffle=False,
 	batch_size=32,
 	num_epochs=None,
@@ -142,8 +142,8 @@ def dataset_input_fn(
 
 if __name__ == '__main__':
 
-	TFR_DIR = "gs://kfp-testing/retin_oct/conv_9may/tfrecords"
-	LABEL_LIST = "gs://kfp-testing/retin_oct/conv_9may/labels.json"
+	TFR_DIR = "gs://kfp-testing/retin_oct/conv_256_10may/tfrecords"
+	LABEL_LIST = "gs://kfp-testing/retin_oct/conv_256_10may/labels.json"
 
 	train_path = os.path.join(TFR_DIR, "train")
 	test_path = os.path.join(TFR_DIR, "test")
@@ -195,14 +195,14 @@ if __name__ == '__main__':
 		shuffle=True,
 		# batch_size=BATCH_SIZE,
 		# buffer_size=2048,
-		# num_epochs=EPOCHS,
+		num_epochs=2,
 		# prefetch_buffer_size=PREFETCH
 		)
 
 	oct_classifier.train(
     	input_fn=oct_train_in,
     	# steps=1000,
-		max_steps=3000,
+		max_steps=6000,
     	# hooks=[logging_hook]
     	)
 
