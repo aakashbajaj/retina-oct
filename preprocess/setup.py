@@ -19,8 +19,8 @@ if __name__ == '__main__':
 	parser.add_argument('--project-id',	required=True)
 	parser.add_argument('--runner',	default=None)
 	parser.add_argument("--num-shards", type=int, default=5)
-	parser.add_argument("--height", type=int, default=224)
-	parser.add_argument("--width", type=int, default=224)
+	parser.add_argument("--height", type=int, default=256)
+	parser.add_argument("--width", type=int, default=256)
 
 	args = parser.parse_args()
 	arguments = args.__dict__

@@ -71,7 +71,7 @@ def _convert_to_example(filename, image_buffer, label_int, label_str, height, wi
 class ImageCoder(object):
 	"""Helper class that provides TensorFlow image coding utilities."""
 
-	def __init__(self, height=224, width=224, channels=1):
+	def __init__(self, height=256, width=256, channels=1):
 		# Create a single Session to run all image coding calls.
 		self._sess = tf.Session()
 
@@ -170,8 +170,8 @@ if __name__ == '__main__':
 	parser.add_argument("--runner",	default=None)
 	parser.add_argument("--num-shards", type=int, default=5)
 	parser.add_argument("--split-flag", type=int, default=2)
-	parser.add_argument("--height", type=int, default=224)
-	parser.add_argument("--width", type=int, default=224)
+	parser.add_argument("--height", type=int, default=256)
+	parser.add_argument("--width", type=int, default=256)
 
 
 	args = parser.parse_args()
