@@ -142,8 +142,8 @@ def dataset_input_fn(
 
 if __name__ == '__main__':
 
-	TFR_DIR = "gs://kfp-testing/retin_oct/conv_256_10may/tfrecords"
-	LABEL_LIST = "gs://kfp-testing/retin_oct/conv_256_10may/labels.json"
+	TFR_DIR = "/home/aakashbajaj5311/conv_data_256/conv_256_10may/tfrecords"
+	LABEL_LIST = "/home/aakashbajaj5311/conv_data_256/conv_256_10may/labels.json"
 
 	train_path = os.path.join(TFR_DIR, "train")
 	test_path = os.path.join(TFR_DIR, "test")
@@ -174,6 +174,9 @@ if __name__ == '__main__':
 	except Exception as e:
 		print(str(e))
 		exit(1)
+
+	print("Training:", training_filenames)
+	print("Testing:", testing_filenames)
 
 	strategy = tf.contrib.distribute.MirroredStrategy(num_gpus=2)
 	config = tf.estimator.RunConfig(train_distribute=strategy)
