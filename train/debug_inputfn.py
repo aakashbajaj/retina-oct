@@ -148,7 +148,7 @@ def tfr_parser(data_record):
 
 	sample = tf.parse_single_example(data_record, feature_def)
 	
-	image_size=(224,224,1)
+	image_size=(256,256,1)
 	num_classes = 4
 
 	img_arr = sample['image']
@@ -159,13 +159,14 @@ def tfr_parser(data_record):
 	filename = sample['filename']
 	classname = sample['classname']
 
-	return (img_arr, tf.one_hot(label, num_classes), filename, classname)
+	# return (img_arr, tf.one_hot(label, num_classes), filename, classname)
+	return (img_arr, label, filename, classname)
 
 
 if __name__ == '__main__':
 
-	TFR_DIR = "gs://kfp-testing/retin_oct/conv_9may/tfrecords"
-	LABEL_LIST = "gs://kfp-testing/retin_oct/conv_9may/labels.json"
+	TFR_DIR = "/home/aakashbajaj5311/conv_data_256/conv_256_10may/tfrecords/"
+	LABEL_LIST = "/home/aakashbajaj5311/conv_data_256/conv_256_10may/labels.json"
 
 	train_path = os.path.join(TFR_DIR, "test")
 
@@ -228,7 +229,7 @@ if __name__ == '__main__':
 
 	next_elem = iter.get_next()
 
-	import cv2
+	# import cv2
 	with tf.Session() as sess:
 		for i in range(10):
 			features, label, filename, classname = sess.run(next_elem)
@@ -238,6 +239,6 @@ if __name__ == '__main__':
 			print(label)
 			print(filename)
 			print(classname)
-			cv2.imshow("image{}".format(i), features)
+			# cv2.imshow("image{}".format(i), features)
 
-		cv2.waitKey()
+		# cv2.waitKey()

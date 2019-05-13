@@ -19,7 +19,7 @@ def cnn_model_fn(features, labels, mode):
 		activation=tf.nn.relu)
 
 	bn1 = tf.layers.batch_normalization(inputs=conv1, training=(mode == tf.estimator.ModeKeys.TRAIN))
-	mp1 = tf.layers.max_pooling2d(inputs=bn1, pool_size=[2,2])
+	mp1 = tf.layers.max_pooling2d(inputs=bn1, pool_size=[2,2], strides=2)
 	drp1 = tf.layers.dropout(
 		inputs=mp1, rate=0.25, training=(mode == tf.estimator.ModeKeys.TRAIN))
 
@@ -31,7 +31,7 @@ def cnn_model_fn(features, labels, mode):
 		activation=tf.nn.relu)
 
 	bn2 = tf.layers.batch_normalization(inputs=conv2, training=(mode == tf.estimator.ModeKeys.TRAIN))
-	mp2 = tf.layers.max_pooling2d(inputs=bn1, pool_size=[2,2], strides=2)
+	mp2 = tf.layers.max_pooling2d(inputs=bn2, pool_size=[2,2], strides=2)
 	drp2 = tf.layers.dropout(
 		inputs=mp2, rate=0.25, training=mode == tf.estimator.ModeKeys.TRAIN)
 
@@ -49,7 +49,7 @@ def cnn_model_fn(features, labels, mode):
 	flt = tf.layers.flatten(inputs=drp3)
 
 	dns1 = tf.layers.dense(inputs=flt, units=32, activation=tf.nn.relu)
-	dense_bn = tf.layers.batch_normalization(inputs=dns1, training=(mode == tf.estimator.ModeKeys.TRAIN))
+	# dense_bn = tf.layers.batch_normalization(inputs=dns1, training=(mode == tf.estimator.ModeKeys.TRAIN))
 	drp4 = tf.layers.dropout(
 		inputs=dns1, rate=0.5, training=mode == tf.estimator.ModeKeys.TRAIN)
 
@@ -61,22 +61,26 @@ def cnn_model_fn(features, labels, mode):
 		# "accuracy": tf.metrics.accuracy(labels=tf.argmax(labels, axis=1), predictions=tf.argmax(input=logits, axis=1))
 	}
 
-	train_accuracy =  tf.metrics.accuracy(labels=tf.argmax(labels, axis=1), predictions=predictions["classes"])
+	train_accuracy =  tf.metrics.accuracy(labels=labels, predictions=tf.argmax(input=logits, axis=1), name="accuracy_op")
+
+	eval_train_metrics = {
+		"accuracy": tf.metrics.accuracy(labels=labels, predictions=predictions["classes"])
+	}
 
 	if mode == tf.estimator.ModeKeys.PREDICT:
 		return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions)
 
-	fix_labels = tf.stop_gradient(labels)
+	# fix_labels = tf.stop_gradient(labels)
 
-	loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=fix_labels, logits=logits))
+	# loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=fix_labels, logits=logits))
+	# loss = (tf.nn.softmax_cross_entropy_with_logits_v2(labels=fix_labels, logits=logits))
 	# loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=labels, logits=logits)
-	# loss = tf.losses.sparse_softmax_cross_entropy(labels=tf.argmax(labels, axis=1), logits=logits)
+	loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=labels, logits=logits))
 
 	# accuracy = tf.metrics.accuracy(
 	# 	labels=labels, predictions=predictions["classes"])
 
-	logging_hook = tf.train.LoggingTensorHook(
-		{"loss" : loss, "accuracy" : train_accuracy}, every_n_iter=10)
+	# logging_hook = tf.train.LoggingTensorHook({"loss" : loss, "accuracy" : train_accuracy}, every_n_iter=50)
 
 	if mode == tf.estimator.ModeKeys.TRAIN:
 		optimizer = tf.train.AdamOptimizer()
@@ -84,12 +88,15 @@ def cnn_model_fn(features, labels, mode):
 			loss=loss,
 			global_step=tf.train.get_global_step())
 
-		return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op, 
-		# training_hooks = [logging_hook]
-		)
+		update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+		train_op = tf.group([train_op, update_ops])
+
+		return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op, eval_metric_ops=eval_train_metrics,
+			# training_hooks = [logging_hook]
+			)
 
 	eval_metric_ops = {
-		"accuracy": tf.metrics.accuracy(labels=tf.argmax(labels, axis=1), predictions=predictions["classes"])
+		"accuracy": tf.metrics.accuracy(labels=labels, predictions=predictions["classes"])
 	}
 	
 	return tf.estimator.EstimatorSpec(
@@ -124,7 +131,8 @@ def dataset_input_fn(
 		img_arr = tf.reshape(img_arr, image_size)
 		label = tf.cast(sample['label'], tf.int64)
 
-		return (img_arr, (tf.one_hot(label, num_classes)))
+		# return (img_arr, (tf.one_hot(label, num_classes)))
+		return (img_arr, label)
 
 	dataset = dataset.map(tfr_parser, num_parallel_calls=os.cpu_count())
 	
@@ -184,10 +192,10 @@ if __name__ == '__main__':
 
 	oct_classifier = tf.estimator.Estimator(
 		model_fn=cnn_model_fn,
-		model_dir="/tmp/oct_classifier_simple",
+		model_dir="/tmp/oct_classifier_bn_update",
 		config=config)
 
-	tensors_to_log = {"probabilities": "softmax_tensor"}
+	tensors_to_log = {"probabilities": "softmax_tensor", "train_acc": "accuracy_op"}
 
 	# logging_hook = tf.train.LoggingTensorHook(
 	# 	tensors=tensors_to_log, every_n_iter=50)
@@ -213,5 +221,5 @@ if __name__ == '__main__':
 		testing_filenames,
 		labels,
 		batch_size=10)
-	res = oct_classifier.evaluate(input_fn=oct_test_in, steps=100)
+	res = oct_classifier.evaluate(input_fn=oct_test_in, steps=500)
 	print(res)
