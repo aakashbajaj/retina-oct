@@ -18,8 +18,8 @@ def cnn_model_fn(features, labels, mode):
 		padding="valid",
 		activation=tf.nn.relu)
 
-	bn1 = tf.layers.batch_normalization(inputs=conv1, training=(mode == tf.estimator.ModeKeys.TRAIN))
-	mp1 = tf.layers.max_pooling2d(inputs=bn1, pool_size=[2,2], strides=2)
+	# bn1 = tf.layers.batch_normalization(inputs=conv1, training=(mode == tf.estimator.ModeKeys.TRAIN))
+	mp1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2,2], strides=2)
 	drp1 = tf.layers.dropout(
 		inputs=mp1, rate=0.25, training=(mode == tf.estimator.ModeKeys.TRAIN))
 
@@ -30,8 +30,8 @@ def cnn_model_fn(features, labels, mode):
 		padding="valid",
 		activation=tf.nn.relu)
 
-	bn2 = tf.layers.batch_normalization(inputs=conv2, training=(mode == tf.estimator.ModeKeys.TRAIN))
-	mp2 = tf.layers.max_pooling2d(inputs=bn2, pool_size=[2,2], strides=2)
+	# bn2 = tf.layers.batch_normalization(inputs=conv2, training=(mode == tf.estimator.ModeKeys.TRAIN))
+	mp2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2,2], strides=2)
 	drp2 = tf.layers.dropout(
 		inputs=mp2, rate=0.25, training=mode == tf.estimator.ModeKeys.TRAIN)
 
@@ -42,9 +42,8 @@ def cnn_model_fn(features, labels, mode):
 		padding="valid",
 		activation=tf.nn.relu)
 
-	bn3 = tf.layers.batch_normalization(inputs=conv3, training=(mode == tf.estimator.ModeKeys.TRAIN))
-	drp3 = tf.layers.dropout(
-		inputs=bn3, rate=0.25, training=mode == tf.estimator.ModeKeys.TRAIN)
+	# bn3 = tf.layers.batch_normalization(inputs=conv3, training=(mode == tf.estimator.ModeKeys.TRAIN))
+	drp3 = tf.layers.dropout(inputs=conv3, rate=0.25, training=mode == tf.estimator.ModeKeys.TRAIN)
 
 	flt = tf.layers.flatten(inputs=drp3)
 
@@ -192,7 +191,7 @@ if __name__ == '__main__':
 
 	oct_classifier = tf.estimator.Estimator(
 		model_fn=cnn_model_fn,
-		model_dir="/home/aakashbajaj5311/train_models/oct_classifier_bn5ep",
+		model_dir="/home/aakashbajaj5311/train_models/oct_classifier_noBN_5ep",
 		config=config)
 
 	tensors_to_log = {"probabilities": "softmax_tensor", "train_acc": "accuracy_op"}
@@ -206,16 +205,16 @@ if __name__ == '__main__':
 		shuffle=True,
 		# batch_size=BATCH_SIZE,
 		# buffer_size=2048,
-		num_epochs=2,
+		num_epochs=5,
 		# prefetch_buffer_size=PREFETCH
 		)
 
-	oct_classifier.train(
-    	input_fn=oct_train_in,
-    	# steps=1000,
-		max_steps=8000,
-    	# hooks=[logging_hook]
-    	)
+	# oct_classifier.train(
+    # 	input_fn=oct_train_in,
+	# 	max_steps=7000,
+    # 	# steps=1000,
+    # 	# hooks=[logging_hook]
+    # 	)
 
 	oct_test_in = lambda: dataset_input_fn(
 		testing_filenames,
