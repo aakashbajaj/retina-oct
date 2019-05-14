@@ -19,27 +19,48 @@ def get_available_gpus():
 from argparse import ArgumentParser
 parser = ArgumentParser()
 
+# Flags
+parser.add_argument("--train-flag", type=int, dest="TRAIN_FLAG", default=1)
+parser.add_argument("--evaluate-flag", type=int, dest="EVALUATE_FLAG", default=1)
+parser.add_argument("--save-model-flag", type=int, dest="SAVE_MODEL_FLAG", default=1)
+parser.add_argument("--distribute", type=int, dest="DISTRIBUTE_FLAG", default=1)
+
+# parameters
 parser.add_argument("--tfr-dir", required=True, dest="TFR_DIR", help="Folder containing converted records")
 parser.add_argument("--model-dir", dest="MODEL_DIR", help="Folder for model checkpointing", default="/tmp/model_ckpt/")
+parser.add_argument("--save-model-dir", dest="SAVE_MODEL_DIR", help="Folder for exporting saved model", default="/tmp/model_ckpt/saved")
 parser.add_argument("--label-list", required=True, dest="LABEL_LIST", help="Location of labels json file")
-parser.add_argument("--epochs", type=int, dest="EPOCHS", default=1)
-parser.add_argument("--batch", type=int, dest="BATCH_SIZE", default=32)
+parser.add_argument("--num-epochs", type=int, dest="NUM_EPOCHS", default=1)
+parser.add_argument("--batch-size", type=int, dest="BATCH_SIZE", default=32)
 parser.add_argument("--train-steps", type=int, dest="TRAIN_STEPS", default=10000)
-parser.add_argument("--prefetch", type=int, dest="PREFETCH", default=-1)
+parser.add_argument("--max-train-steps", type=int, dest="MAX_TRAIN_STEPS", default=10000)
+parser.add_argument("--prefetch-buffer", type=int, dest="PREFETCH", default=-1)
 parser.add_argument("--height", type=int, dest="HEIGHT", default=256)
 parser.add_argument("--width", type=int, dest="WIDTH", default=256)
+parser.add_argument("--channels", type=int, dest="CHANNELS", default=1)
+parser.add_argument("--learning-rate", type=int, dest="LEARNING_RATE", default=0.001)
 
 args = parser.parse_args()
+arguments = args.__dict__
+
+TRAIN_FLAG = args.TRAIN_FLAG
+EVALUATE_FLAG = args.EVALUATE_FLAG
+SAVE_MODEL_FLAG = args.SAVE_MODEL_FLAG
+DISTRIBUTE_FLAG = args.DISTRIBUTE_FLAG
 
 TFR_DIR = args.TFR_DIR
 MODEL_DIR = args.MODEL_DIR
+SAVE_MODEL_DIR = args.SAVE_MODEL_DIR
 LABEL_LIST = args.LABEL_LIST
-EPOCHS = int(args.EPOCHS)
+NUM_EPOCHS = int(args.NUM_EPOCHS)
 BATCH_SIZE = int(args.BATCH_SIZE)
+TRAIN_STEPS = int(args.TRAIN_STEPS)
+MAX_TRAIN_STEPS = int(args.MAX_TRAIN_STEPS)
 PREFETCH = int(args.PREFETCH)
 HEIGHT = int(args.HEIGHT)
 WIDTH = int(args.WIDTH)
-TRAIN_STEPS = int(args.TRAIN_STEPS)
+CHANNELS = int(args.CHANNELS)
+LEARNING_RATE = int(args.LEARNING_RATE)
 
 # if prefetch_buffer_size is None then TensorFlow will use an optimal prefetch buffer size automatically
 if PREFETCH == -1:
@@ -77,13 +98,16 @@ except Exception as e:
 	print(str(e))
 	exit(1)
 
-model_est_fn = gen_cnn_model_fn(num_classes=len(labels))
+model_est_fn = gen_cnn_model_fn(image_size=(HEIGHT, WIDTH, CHANNELS), num_classes=len(labels), opt_learn_rate=LEARNING_RATE)
 
 NUM_GPUS = get_available_gpus()
 print("\n{0} GPUs available".format(NUM_GPUS))
 
-strategy = tf.contrib.distribute.MirroredStrategy(num_gpus=NUM_GPUS)
-config = tf.estimator.RunConfig(train_distribute=strategy)
+if DISTRIBUTE_FLAG:
+	strategy = tf.contrib.distribute.MirroredStrategy(num_gpus=NUM_GPUS)
+	config = tf.estimator.RunConfig(train_distribute=strategy)
+else:
+	config = tf.estimator.RunConfig()
 
 model_classifier = tf.estimator.Estimator(
 	model_fn=model_est_fn,
@@ -91,12 +115,15 @@ model_classifier = tf.estimator.Estimator(
 	model_dir=MODEL_DIR
 )
 
-oct_train_in = lambda:dataset_input_fn(
-	training_filenames,
-	labels,
-	shuffle=True,
-	batch_size=BATCH_SIZE,
-	buffer_size=2048,
-	num_epochs=2,
-	prefetch_buffer_size=PREFETCH
-)
+
+if TRAIN_FLAG:
+	oct_train_in = lambda:dataset_input_fn(
+		training_filenames,
+		labels,
+		shuffle=True,
+		batch_size=BATCH_SIZE,
+		buffer_size=2048,
+		num_epochs=NUM_EPOCHS,
+		prefetch_buffer_size=PREFETCH
+	)
+
