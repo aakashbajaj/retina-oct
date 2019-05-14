@@ -60,10 +60,10 @@ def cnn_model_fn(features, labels, mode):
 		# "accuracy": tf.metrics.accuracy(labels=tf.argmax(labels, axis=1), predictions=tf.argmax(input=logits, axis=1))
 	}
 
-	train_accuracy =  tf.metrics.accuracy(labels=labels, predictions=tf.argmax(input=logits, axis=1), name="accuracy_op")
-
+	accuracy =  tf.metrics.accuracy(labels=labels, predictions=predictions["classes"])
+	tf.summary.scalar('accuracy', accuracy[1])
 	eval_train_metrics = {
-		"accuracy": tf.metrics.accuracy(labels=labels, predictions=predictions["classes"])
+		"accuracy": accuracy
 	}
 
 	if mode == tf.estimator.ModeKeys.PREDICT:
@@ -79,7 +79,7 @@ def cnn_model_fn(features, labels, mode):
 	# accuracy = tf.metrics.accuracy(
 	# 	labels=labels, predictions=predictions["classes"])
 
-	# logging_hook = tf.train.LoggingTensorHook({"loss" : loss, "accuracy" : train_accuracy}, every_n_iter=50)
+	# logging_hook = tf.train.LoggingTensorHook({"loss" : loss, "accuracy" : accuracy[1]}, every_n_iter=50)
 
 	if mode == tf.estimator.ModeKeys.TRAIN:
 		optimizer = tf.train.AdamOptimizer()
@@ -191,7 +191,7 @@ if __name__ == '__main__':
 
 	oct_classifier = tf.estimator.Estimator(
 		model_fn=cnn_model_fn,
-		model_dir="/home/aakashbajaj5311/train_models/oct_classifier_noBN_5ep",
+		model_dir="/home/aakashbajaj5311/train_models/oct_classifier_logging_test",
 		config=config)
 
 	tensors_to_log = {"probabilities": "softmax_tensor", "train_acc": "accuracy_op"}
@@ -209,12 +209,12 @@ if __name__ == '__main__':
 		# prefetch_buffer_size=PREFETCH
 		)
 
-	# oct_classifier.train(
-    # 	input_fn=oct_train_in,
-	# 	max_steps=7000,
-    # 	# steps=1000,
-    # 	# hooks=[logging_hook]
-    # 	)
+	oct_classifier.train(
+    	input_fn=oct_train_in,
+		max_steps=7000,
+    	# steps=1000,
+    	# hooks=[logging_hook]
+    	)
 
 	oct_test_in = lambda: dataset_input_fn(
 		testing_filenames,
