@@ -44,3 +44,10 @@ def gen_input_fn(image_size, num_classes):
 		return dataset
 
 	return dataset_input_fn
+
+def get_serving_input_receiver_fn(image_size=(256,256,1)):
+	def serving_input_receiver_fn():
+		inputs = {
+			INPUT_FEATURE: tf.placeholder(tf.float32, [None, image_size[0], image_size[1], image_size[2]]),
+		}
+	return tf.estimator.export.ServingInputReceiver(inputs, inputs)
