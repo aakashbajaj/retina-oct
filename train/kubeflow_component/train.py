@@ -7,7 +7,7 @@ import tensorflow.gfile as tf_reader
 from tensorflow.python.client import device_lib
 
 from cnn_model import gen_cnn_model_fn
-from data_utils import gen_input_fn
+import data_utils
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -115,15 +115,36 @@ model_classifier = tf.estimator.Estimator(
 	model_dir=MODEL_DIR
 )
 
+dataset_input_fn = data_utils.gen_input_fn(image_size=(HEIGHT, WIDTH, CHANNELS), num_classes=len(labels))
 
 if TRAIN_FLAG:
 	oct_train_in = lambda:dataset_input_fn(
 		training_filenames,
-		labels,
 		shuffle=True,
 		batch_size=BATCH_SIZE,
-		buffer_size=2048,
+		buffer_size=BATCH_SIZE*10,
 		num_epochs=NUM_EPOCHS,
 		prefetch_buffer_size=PREFETCH
 	)
 
+	model_classifier.train(
+    	input_fn=oct_train_in,
+		max_steps=MAX_TRAIN_STEPS,
+    	steps=TRAIN_STEPS,
+    	# hooks=[logging_hook]
+    	)
+
+if EVALUATE_FLAG:
+	oct_test_in = lambda: dataset_input_fn(
+		testing_filenames,
+		batch_size=10)
+	res = model_classifier.evaluate(input_fn=oct_test_in, steps=100)
+	print(res)
+
+if SAVE_MODEL_FLAG:
+	serving_input_receiver_fn = data_utils.get_serving_input_receiver_fn(image_size=(HEIGHT, WIDTH, CHANNELS))
+
+	model_classifier.export_savedmodel(
+		SAVE_MODEL_DIR,
+		serving_input_receiver_fn=serving_input_receiver_fn
+	)
