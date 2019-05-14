@@ -48,16 +48,22 @@ def gen_cnn_model_fn(image_size=(256,256,1), num_classes, opt_learn_rate=0.001):
 		predictions = {
 			"classes": tf.argmax(input=logits, axis=1),
 			"probabilities": tf.nn.softmax(logits, name="softmax_tensor")
+			# "accuracy": tf.metrics.accuracy(labels=tf.argmax(labels, axis=1), predictions=tf.argmax(input=logits, axis=1))
 		}
 
-		train_accuracy =  tf.metrics.accuracy(labels=labels, predictions=tf.argmax(input=logits, axis=1), name="accuracy_op")
-
+		accuracy =  tf.metrics.accuracy(labels=labels, predictions=predictions["classes"])
+		tf.summary.scalar('accuracy', accuracy[1])
 		eval_train_metrics = {
-			"accuracy": tf.metrics.accuracy(labels=labels, predictions=predictions["classes"])
+			"accuracy": accuracy
 		}
 
 		if mode == tf.estimator.ModeKeys.PREDICT:
-			return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions)
+			return tf.estimator.EstimatorSpec(
+				mode=mode,
+				predictions=predictions,
+				export_outputs={
+					'predict': tf.estimator.export.PredictOutput(predictions)}
+				)
 
 		# fix_labels = tf.stop_gradient(labels)
 
@@ -69,7 +75,7 @@ def gen_cnn_model_fn(image_size=(256,256,1), num_classes, opt_learn_rate=0.001):
 		# accuracy = tf.metrics.accuracy(
 		# 	labels=labels, predictions=predictions["classes"])
 
-		# logging_hook = tf.train.LoggingTensorHook({"loss" : loss, "accuracy" : train_accuracy}, every_n_iter=50)
+		# logging_hook = tf.train.LoggingTensorHook({"loss" : loss, "accuracy" : accuracy[1]}, every_n_iter=50)
 
 		if mode == tf.estimator.ModeKeys.TRAIN:
 			optimizer = tf.train.AdamOptimizer(learning_rate=opt_learn_rate)
