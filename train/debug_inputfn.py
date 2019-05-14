@@ -8,7 +8,7 @@ import tensorflow.gfile as tf_reader
 tf.logging.set_verbosity(tf.logging.INFO)
 
 # def cnn_model_fn(features, labels, mode):
-# 	input_layer = tf.reshape(features, [-1,224,224,1])
+# 	input_layer = tf.reshape(features, [-1,256,256,1])
 
 # 	conv1 = tf.layers.conv2d(
 # 		inputs=input_layer,
@@ -148,7 +148,7 @@ def tfr_parser(data_record):
 
 	sample = tf.parse_single_example(data_record, feature_def)
 	
-	image_size=(224,224,1)
+	image_size=(256,256,1)
 	num_classes = 4
 
 	img_arr = sample['image']
@@ -164,8 +164,8 @@ def tfr_parser(data_record):
 
 if __name__ == '__main__':
 
-	TFR_DIR = "gs://kfp-testing/retin_oct/conv_9may/tfrecords"
-	LABEL_LIST = "gs://kfp-testing/retin_oct/conv_9may/labels.json"
+	TFR_DIR = "gs://kfp-testing/retin_oct/conv_256_10may/tfrecords"
+	LABEL_LIST = "gs://kfp-testing/retin_oct/conv_256_10may/labels.json"
 
 	train_path = os.path.join(TFR_DIR, "test")
 
@@ -179,19 +179,20 @@ if __name__ == '__main__':
 		print("Invalid training directory. Exiting.......\n")
 		exit(0)
 
-	print(training_filenames)
+	# training_filenames = ["/home/techno/oct_data/retin_oct_conv_9may_tfrecords_test_test-00000-of-00005"]
 	training_filenames = [training_filenames[0]]
+	print(training_filenames)
 
-	try:
-		with tf_reader.GFile(LABEL_LIST, 'rb') as fl:
-			labels_bytes = fl.read()
-			labels_json = labels_bytes.decode('utf8')
+	# try:
+	# 	with tf_reader.GFile(LABEL_LIST, 'rb') as fl:
+	# 		labels_bytes = fl.read()
+	# 		labels_json = labels_bytes.decode('utf8')
 
-			labels = json.loads(labels_json)
-			print(labels)
-	except Exception as e:
-		print(str(e))
-		exit(1)
+	# 		labels = json.loads(labels_json)
+	# 		print(labels)
+	# except Exception as e:
+	# 	print(str(e))
+	# 	exit(1)
 
 	# strategy = tf.contrib.distribute.MirroredStrategy(num_gpus=2)
 	# config = tf.estimator.RunConfig(train_distribute=strategy)
@@ -230,14 +231,18 @@ if __name__ == '__main__':
 
 	import cv2
 	with tf.Session() as sess:
+		abc = []
 		for i in range(10):
 			features, label, filename, classname = sess.run(next_elem)
 			print(features.shape)
 
-			print(label.shape)
+			print(np.argmax(label))
 			print(label)
+			abc.append(label)
 			print(filename)
 			print(classname)
 			cv2.imshow("image{}".format(i), features)
 
 		cv2.waitKey()
+		# print(np.array(abc))
+		# print(np.argmax(abc, axis=1))
