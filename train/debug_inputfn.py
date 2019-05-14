@@ -159,13 +159,16 @@ def tfr_parser(data_record):
 	filename = sample['filename']
 	classname = sample['classname']
 
-	return (img_arr, tf.one_hot(label, num_classes), filename, classname)
+	# return (img_arr, tf.one_hot(label, num_classes), filename, classname)
+	return (img_arr, label, filename, classname)
 
 
 if __name__ == '__main__':
 
 	TFR_DIR = "gs://kfp-testing/retin_oct/conv_256_10may/tfrecords"
 	LABEL_LIST = "gs://kfp-testing/retin_oct/conv_256_10may/labels.json"
+	# TFR_DIR = "/home/aakashbajaj5311/conv_data_256/conv_256_10may/tfrecords/"
+	# LABEL_LIST = "/home/aakashbajaj5311/conv_data_256/conv_256_10may/labels.json"
 
 	train_path = os.path.join(TFR_DIR, "test")
 
@@ -229,7 +232,7 @@ if __name__ == '__main__':
 
 	next_elem = iter.get_next()
 
-	import cv2
+	# import cv2
 	with tf.Session() as sess:
 		abc = []
 		for i in range(10):
@@ -241,8 +244,12 @@ if __name__ == '__main__':
 			abc.append(label)
 			print(filename)
 			print(classname)
-			cv2.imshow("image{}".format(i), features)
+			# cv2.imshow("image{}".format(i), features)
 
+<<<<<<< HEAD
 		cv2.waitKey()
 		# print(np.array(abc))
 		# print(np.argmax(abc, axis=1))
+=======
+		# cv2.waitKey()
+>>>>>>> 4bd6c2b59768dc0c0caaf4045413eccf7c2a9679
