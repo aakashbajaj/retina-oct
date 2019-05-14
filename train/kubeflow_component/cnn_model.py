@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-def gen_cnn_model_fn(image_size=(256,256,1), num_classes):
+def gen_cnn_model_fn(image_size=(256,256,1), num_classes, opt_learn_rate=0.001):
 
 	def cnn_model_fn(features, labels, mode):
 		input_layer = tf.reshape(features, [-1,image_size[0],image_size[1],image_size[2]])
@@ -72,7 +72,7 @@ def gen_cnn_model_fn(image_size=(256,256,1), num_classes):
 		# logging_hook = tf.train.LoggingTensorHook({"loss" : loss, "accuracy" : train_accuracy}, every_n_iter=50)
 
 		if mode == tf.estimator.ModeKeys.TRAIN:
-			optimizer = tf.train.AdamOptimizer()
+			optimizer = tf.train.AdamOptimizer(learning_rate=opt_learn_rate)
 			train_op = optimizer.minimize(
 				loss=loss,
 				global_step=tf.train.get_global_step())
