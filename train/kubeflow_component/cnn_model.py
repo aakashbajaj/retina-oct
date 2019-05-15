@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-def gen_cnn_model_fn(image_size=(256,256,1), num_classes, opt_learn_rate=0.001):
+def gen_cnn_model_fn(image_size, num_classes, opt_learn_rate=0.001):
 
 	def cnn_model_fn(features, labels, mode):
 		input_layer = tf.reshape(features, [-1,image_size[0],image_size[1],image_size[2]])
