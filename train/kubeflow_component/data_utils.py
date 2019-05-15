@@ -1,4 +1,5 @@
 import tensorflow as tf
+import os
 
 def gen_input_fn(image_size, num_classes):
 
