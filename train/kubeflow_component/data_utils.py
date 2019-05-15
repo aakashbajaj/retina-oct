@@ -1,3 +1,5 @@
+import tensorflow as tf
+
 def gen_input_fn(image_size, num_classes):
 
 	def dataset_input_fn(
