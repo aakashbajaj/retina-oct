@@ -53,4 +53,6 @@ def get_serving_input_receiver_fn(image_size=(256,256,1)):
 		inputs = {
 			INPUT_FEATURE: tf.placeholder(tf.float32, [None, image_size[0], image_size[1], image_size[2]]),
 		}
-	return tf.estimator.export.ServingInputReceiver(inputs, inputs)
+		return tf.estimator.export.ServingInputReceiver(inputs, inputs)
+
+	return serving_input_receiver_fn
