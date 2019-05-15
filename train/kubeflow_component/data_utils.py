@@ -30,7 +30,7 @@ def gen_input_fn(image_size, num_classes):
 			img_arr = tf.reshape(img_arr, image_size)
 			label = tf.cast(sample['label'], tf.int64)
 
-			return (img_arr, (tf.one_hot(label, num_classes)))
+			return (img_arr, label)
 
 		dataset = dataset.map(tfr_parser, num_parallel_calls=os.cpu_count())
 		
