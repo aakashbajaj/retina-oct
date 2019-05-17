@@ -30,7 +30,7 @@ def gen_input_fn(image_size, num_classes):
 			img_arr = tf.reshape(img_arr, image_size)
 			label = tf.cast(sample['label'], tf.int64)
 
-			return (img_arr, label)
+			return ({"img_tensor":img_arr}, label)
 
 		dataset = dataset.map(tfr_parser, num_parallel_calls=os.cpu_count())
 		
@@ -48,11 +48,36 @@ def gen_input_fn(image_size, num_classes):
 
 	return dataset_input_fn
 
-def get_serving_input_receiver_fn(image_size=(256,256,1)):
+
+def get_serving_input_receiver_fn(image_size):
+	def _img_string_to_tensor(image_string, image_size):
+		image_decoded = tf.image.decode_jpeg(image_string, channels=image_size[2])
+		image_decoded_as_float = tf.image.convert_image_dtype(image_decoded, dtype=tf.float32)
+		image_resized = tf.image.resize_images(image_decoded_as_float, size=(image_size[0], image_size[1]))
+		return image_resized
+
 	def serving_input_receiver_fn():
-		inputs = {
-			INPUT_FEATURE: tf.placeholder(tf.float32, [None, image_size[0], image_size[1], image_size[2]]),
-		}
-		return tf.estimator.export.ServingInputReceiver(inputs, inputs)
+		serialized_image = tf.placeholder(dtype=tf.string, shape=[None], name='inp_img_byte_string')
+		received_tensors = { 'images': serialized_image }
+		fn = lambda image: _img_string_to_tensor(image, (image_size[0], image_size[1]))
+		img_features = tf.map_fn(fn, serialized_image, dtype=tf.float32)
+		return tf.estimator.export.ServingInputReceiver({'img_tensor': img_features}, received_tensors)
 
 	return serving_input_receiver_fn
+
+def get_predict_fn(image_size):
+	def _parse_function(filename):
+		image_string = tf.read_file(filename)
+		image_decoded = tf.image.decode_jpeg(image_string, channels=image_size[2])
+		image_decoded = tf.image.resize_images(image_decoded, (image_size[0], image_size[1]))
+		image_decoded = tf.cast(image_decoded, tf.float32) / 255.
+		image_decoded.set_shape(image_size)
+
+		return {"img_tensor":image_decoded}
+
+	def predict_input_fn(image_path):
+		img_filenames = tf.constant(image_path)
+		dataset = tf.data.Dataset.from_tensor_slices(img_filenames)
+		dataset = dataset.map(_parse_function)
+		
+		return dataset
