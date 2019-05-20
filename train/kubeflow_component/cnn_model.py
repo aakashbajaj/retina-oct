@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-def gen_cnn_model_fn(image_size, num_classes, opt_learn_rate=0.001):
+def gen_cnn_model_fn(image_size, num_classes):
 
 	def cnn_model_fn(features, labels, mode):
 		image_tensor = features["image"]
@@ -78,7 +78,7 @@ def gen_cnn_model_fn(image_size, num_classes, opt_learn_rate=0.001):
 			eval_train_metrics = {
 				"accuracy": accuracy
 			}
-			optimizer = tf.train.AdamOptimizer(learning_rate=opt_learn_rate)
+			optimizer = tf.train.AdamOptimizer()
 			train_op = optimizer.minimize(
 				loss=loss,
 				global_step=tf.train.get_global_step())

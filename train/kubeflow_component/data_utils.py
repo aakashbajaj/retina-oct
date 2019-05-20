@@ -35,7 +35,7 @@ def gen_input_fn(image_size, num_classes):
 		dataset = dataset.map(tfr_parser, num_parallel_calls=os.cpu_count())
 		
 		if shuffle and num_epochs:
-			dataset = dataset.repeat(num_epochs).shuffle(buffer_size)
+			dataset = dataset.shuffle(buffer_size).repeat(num_epochs)
 		elif shuffle:
 			dataset = dataset.shuffle(buffer_size)
 		elif num_epochs:
@@ -64,10 +64,12 @@ def get_serving_input_receiver_fn(image_size):
 		serialized_tf_example = tf.placeholder(dtype=tf.string, shape=[default_batch_size], name='input_image_tensor')
 		received_tensors = { 'images': serialized_tf_example }
 		features = tf.parse_example(serialized_tf_example, feature_spec)
-		fn = lambda image: _img_string_to_tensor(image, (image_size[0], image_size[1]))
+		fn = lambda image: _img_string_to_tensor(image, (image_size))
 		features['image'] = tf.map_fn(fn, features['image'], dtype=tf.float32)
 		
 		return tf.estimator.export.ServingInputReceiver(features, received_tensors)
+
+	return serving_input_receiver_fn
 
 
 def get_predict_fn(image_size):

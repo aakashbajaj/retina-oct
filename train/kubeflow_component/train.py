@@ -32,14 +32,13 @@ parser.add_argument("--save-model-dir", dest="SAVE_MODEL_DIR", help="Folder for 
 parser.add_argument("--label-list", required=True, dest="LABEL_LIST", help="Location of labels json file")
 parser.add_argument("--num-epochs", type=int, dest="NUM_EPOCHS", default=1)
 parser.add_argument("--batch-size", type=int, dest="BATCH_SIZE", default=32)
-parser.add_argument("--train-steps", type=int, dest="TRAIN_STEPS", default=10000)
+# parser.add_argument("--train-steps", type=int, dest="TRAIN_STEPS", default=10000)
 parser.add_argument("--max-train-steps", type=int, dest="MAX_TRAIN_STEPS", default=10000)
 parser.add_argument("--eval-steps", type=int, dest="EVAL_STEPS", default=500)
 parser.add_argument("--prefetch-buffer", type=int, dest="PREFETCH", default=-1)
 parser.add_argument("--height", type=int, dest="HEIGHT", default=256)
 parser.add_argument("--width", type=int, dest="WIDTH", default=256)
 parser.add_argument("--channels", type=int, dest="CHANNELS", default=1)
-parser.add_argument("--learning-rate", type=int, dest="LEARNING_RATE", default=0.001)
 
 args = parser.parse_args()
 arguments = args.__dict__
@@ -55,14 +54,13 @@ SAVE_MODEL_DIR = args.SAVE_MODEL_DIR
 LABEL_LIST = args.LABEL_LIST
 NUM_EPOCHS = int(args.NUM_EPOCHS)
 BATCH_SIZE = int(args.BATCH_SIZE)
-TRAIN_STEPS = int(args.TRAIN_STEPS)
+# TRAIN_STEPS = int(args.TRAIN_STEPS)
 MAX_TRAIN_STEPS = int(args.MAX_TRAIN_STEPS)
 EVAL_STEPS = int(args.EVAL_STEPS)
 PREFETCH = int(args.PREFETCH)
 HEIGHT = int(args.HEIGHT)
 WIDTH = int(args.WIDTH)
 CHANNELS = int(args.CHANNELS)
-LEARNING_RATE = int(args.LEARNING_RATE)
 
 # if prefetch_buffer_size is None then TensorFlow will use an optimal prefetch buffer size automatically
 if PREFETCH == -1:
@@ -104,12 +102,19 @@ except Exception as e:
 	print(str(e))
 	exit(1)
 
-model_est_fn = gen_cnn_model_fn(image_size=(HEIGHT, WIDTH, CHANNELS), num_classes=len(labels), opt_learn_rate=LEARNING_RATE)
+print("Found %d training file records" % (len(training_filenames)))
+print("Found %d testing file records" % (len(testing_filenames)))
+
+print("Training:", training_filenames)
+print("Testing:", testing_filenames)
+
+model_est_fn = gen_cnn_model_fn(image_size=(HEIGHT, WIDTH, CHANNELS), num_classes=len(labels))
 
 NUM_GPUS = get_available_gpus()
 print("\n{0} GPUs available".format(NUM_GPUS))
 
 if DISTRIBUTE_FLAG:
+	print("Using Distributed Strategy.....")
 	strategy = tf.contrib.distribute.MirroredStrategy(num_gpus=NUM_GPUS)
 	config = tf.estimator.RunConfig(train_distribute=strategy, eval_distribute=strategy)
 else:
@@ -117,8 +122,8 @@ else:
 
 model_classifier = tf.estimator.Estimator(
 	model_fn=model_est_fn,
+	model_dir=MODEL_DIR,
 	config=config,
-	model_dir=MODEL_DIR
 )
 
 dataset_input_fn = data_utils.gen_input_fn(image_size=(HEIGHT, WIDTH, CHANNELS), num_classes=len(labels))
@@ -136,7 +141,7 @@ if TRAIN_FLAG:
 	model_classifier.train(
     	input_fn=oct_train_in,
 		max_steps=MAX_TRAIN_STEPS,
-    	steps=TRAIN_STEPS,
+    	# steps=TRAIN_STEPS,
     	# hooks=[logging_hook]
     	)
 
@@ -148,9 +153,9 @@ if EVALUATE_FLAG:
 	print(res)
 
 # if SAVE_MODEL_FLAG:
-serving_input_receiver_fn = data_utils.get_serving_input_receiver_fn(image_size=(HEIGHT, WIDTH, CHANNELS))
+serving_input_rcv_fn = data_utils.get_serving_input_receiver_fn(image_size=(HEIGHT, WIDTH, CHANNELS))
 
-model_classifier.export_savedmodel(
+model_classifier.export_saved_model(
 	SAVE_MODEL_DIR,
-	serving_input_receiver_fn=serving_input_receiver_fn
+	serving_input_receiver_fn=serving_input_rcv_fn
 )
