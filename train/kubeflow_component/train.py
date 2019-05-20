@@ -194,3 +194,10 @@ with file_io.FileIO('/mlpipeline-ui-metadata.json', 'w') as fl:
 
 
 
+with file_io.FileIO('/mlpipeline-metrics.json', 'r') as fl:
+	read_metrics = json.load(fl)
+	print(read_metrics)
+
+with file_io.FileIO('/mlpipeline-ui-metadata.json', 'r') as fl:
+	read_meta = json.load(fl)
+	print(read_meta)
