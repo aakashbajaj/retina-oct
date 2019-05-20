@@ -22,7 +22,7 @@ parser = ArgumentParser()
 # Flags
 parser.add_argument("--train-flag", type=int, dest="TRAIN_FLAG", default=1)
 parser.add_argument("--evaluate-flag", type=int, dest="EVALUATE_FLAG", default=1)
-parser.add_argument("--save-model-flag", type=int, dest="SAVE_MODEL_FLAG", default=1)
+# parser.add_argument("--save-model-flag", type=int, dest="SAVE_MODEL_FLAG", default=1)
 parser.add_argument("--distribute", type=int, dest="DISTRIBUTE_FLAG", default=1)
 
 # parameters
@@ -34,6 +34,7 @@ parser.add_argument("--num-epochs", type=int, dest="NUM_EPOCHS", default=1)
 parser.add_argument("--batch-size", type=int, dest="BATCH_SIZE", default=32)
 parser.add_argument("--train-steps", type=int, dest="TRAIN_STEPS", default=10000)
 parser.add_argument("--max-train-steps", type=int, dest="MAX_TRAIN_STEPS", default=10000)
+parser.add_argument("--eval-steps", type=int, dest="EVAL_STEPS", default=500)
 parser.add_argument("--prefetch-buffer", type=int, dest="PREFETCH", default=-1)
 parser.add_argument("--height", type=int, dest="HEIGHT", default=256)
 parser.add_argument("--width", type=int, dest="WIDTH", default=256)
@@ -45,7 +46,7 @@ arguments = args.__dict__
 
 TRAIN_FLAG = args.TRAIN_FLAG
 EVALUATE_FLAG = args.EVALUATE_FLAG
-SAVE_MODEL_FLAG = args.SAVE_MODEL_FLAG
+# SAVE_MODEL_FLAG = args.SAVE_MODEL_FLAG
 DISTRIBUTE_FLAG = args.DISTRIBUTE_FLAG
 
 TFR_DIR = args.TFR_DIR
@@ -56,6 +57,7 @@ NUM_EPOCHS = int(args.NUM_EPOCHS)
 BATCH_SIZE = int(args.BATCH_SIZE)
 TRAIN_STEPS = int(args.TRAIN_STEPS)
 MAX_TRAIN_STEPS = int(args.MAX_TRAIN_STEPS)
+EVAL_STEPS = int(args.EVAL_STEPS)
 PREFETCH = int(args.PREFETCH)
 HEIGHT = int(args.HEIGHT)
 WIDTH = int(args.WIDTH)
@@ -138,13 +140,13 @@ if EVALUATE_FLAG:
 	oct_test_in = lambda: dataset_input_fn(
 		testing_filenames,
 		batch_size=10)
-	res = model_classifier.evaluate(input_fn=oct_test_in, steps=100)
+	res = model_classifier.evaluate(input_fn=oct_test_in, steps=EVAL_STEPS)
 	print(res)
 
-if SAVE_MODEL_FLAG:
-	serving_input_receiver_fn = data_utils.get_serving_input_receiver_fn(image_size=(HEIGHT, WIDTH, CHANNELS))
+# if SAVE_MODEL_FLAG:
+serving_input_receiver_fn = data_utils.get_serving_input_receiver_fn(image_size=(HEIGHT, WIDTH, CHANNELS))
 
-	model_classifier.export_savedmodel(
-		SAVE_MODEL_DIR,
-		serving_input_receiver_fn=serving_input_receiver_fn
-	)
+model_classifier.export_savedmodel(
+	SAVE_MODEL_DIR,
+	serving_input_receiver_fn=serving_input_receiver_fn
+)
