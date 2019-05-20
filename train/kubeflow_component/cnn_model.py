@@ -3,7 +3,9 @@ import tensorflow as tf
 def gen_cnn_model_fn(image_size, num_classes, opt_learn_rate=0.001):
 
 	def cnn_model_fn(features, labels, mode):
-		input_layer = tf.reshape(features, [-1,image_size[0],image_size[1],image_size[2]])
+		image_tensor = features["image"]
+
+		input_layer = tf.reshape(image_tensor, [-1,image_size[0],image_size[1],image_size[2]])
 
 		conv1 = tf.layers.conv2d(
 			inputs=input_layer,
@@ -48,13 +50,6 @@ def gen_cnn_model_fn(image_size, num_classes, opt_learn_rate=0.001):
 		predictions = {
 			"classes": tf.argmax(input=logits, axis=1),
 			"probabilities": tf.nn.softmax(logits, name="softmax_tensor")
-			# "accuracy": tf.metrics.accuracy(labels=tf.argmax(labels, axis=1), predictions=tf.argmax(input=logits, axis=1))
-		}
-
-		accuracy =  tf.metrics.accuracy(labels=labels, predictions=predictions["classes"])
-		tf.summary.scalar('accuracy', accuracy[1])
-		eval_train_metrics = {
-			"accuracy": accuracy
 		}
 
 		if mode == tf.estimator.ModeKeys.PREDICT:
@@ -78,6 +73,11 @@ def gen_cnn_model_fn(image_size, num_classes, opt_learn_rate=0.001):
 		# logging_hook = tf.train.LoggingTensorHook({"loss" : loss, "accuracy" : accuracy[1]}, every_n_iter=50)
 
 		if mode == tf.estimator.ModeKeys.TRAIN:
+			accuracy =  tf.metrics.accuracy(labels=labels, predictions=predictions["classes"])
+			tf.summary.scalar('accuracy', accuracy[1])
+			eval_train_metrics = {
+				"accuracy": accuracy
+			}
 			optimizer = tf.train.AdamOptimizer(learning_rate=opt_learn_rate)
 			train_op = optimizer.minimize(
 				loss=loss,

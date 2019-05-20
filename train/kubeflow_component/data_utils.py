@@ -30,12 +30,12 @@ def gen_input_fn(image_size, num_classes):
 			img_arr = tf.reshape(img_arr, image_size)
 			label = tf.cast(sample['label'], tf.int64)
 
-			return ({"img_tensor":img_arr}, label)
+			return ({"image":img_arr}, label)
 
 		dataset = dataset.map(tfr_parser, num_parallel_calls=os.cpu_count())
 		
 		if shuffle and num_epochs:
-			dataset = dataset.shuffle(buffer_size).repeat(num_epochs)
+			dataset = dataset.repeat(num_epochs).shuffle(buffer_size)
 		elif shuffle:
 			dataset = dataset.shuffle(buffer_size)
 		elif num_epochs:
@@ -57,13 +57,18 @@ def get_serving_input_receiver_fn(image_size):
 		return image_resized
 
 	def serving_input_receiver_fn():
-		serialized_image = tf.placeholder(dtype=tf.string, shape=[None], name='inp_img_byte_string')
-		received_tensors = { 'images': serialized_image }
+		feature_spec = {
+			'image': tf.FixedLenFeature([], dtype=tf.string)
+		}
+		default_batch_size = 1
+		serialized_tf_example = tf.placeholder(dtype=tf.string, shape=[default_batch_size], name='input_image_tensor')
+		received_tensors = { 'images': serialized_tf_example }
+		features = tf.parse_example(serialized_tf_example, feature_spec)
 		fn = lambda image: _img_string_to_tensor(image, (image_size[0], image_size[1]))
-		img_features = tf.map_fn(fn, serialized_image, dtype=tf.float32)
-		return tf.estimator.export.ServingInputReceiver({'img_tensor': img_features}, received_tensors)
+		features['image'] = tf.map_fn(fn, features['image'], dtype=tf.float32)
+		
+		return tf.estimator.export.ServingInputReceiver(features, received_tensors)
 
-	return serving_input_receiver_fn
 
 def get_predict_fn(image_size):
 	def _parse_function(filename):
@@ -73,7 +78,7 @@ def get_predict_fn(image_size):
 		image_decoded = tf.cast(image_decoded, tf.float32) / 255.
 		image_decoded.set_shape(image_size)
 
-		return {"img_tensor":image_decoded}
+		return {"image":image_decoded}
 
 	def predict_input_fn(image_path):
 		img_filenames = tf.constant(image_path)

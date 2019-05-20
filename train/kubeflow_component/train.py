@@ -27,8 +27,8 @@ parser.add_argument("--distribute", type=int, dest="DISTRIBUTE_FLAG", default=1)
 
 # parameters
 parser.add_argument("--tfr-dir", required=True, dest="TFR_DIR", help="Folder containing converted records")
-parser.add_argument("--model-dir", dest="MODEL_DIR", help="Folder for model checkpointing", default="/tmp/model_ckpt/")
-parser.add_argument("--save-model-dir", dest="SAVE_MODEL_DIR", help="Folder for exporting saved model", default="/tmp/model_ckpt/saved")
+parser.add_argument("--model-dir", required=True, dest="MODEL_DIR", help="Folder for model checkpointing")
+parser.add_argument("--save-model-dir", dest="SAVE_MODEL_DIR", help="Folder for exporting saved model", default="")
 parser.add_argument("--label-list", required=True, dest="LABEL_LIST", help="Location of labels json file")
 parser.add_argument("--num-epochs", type=int, dest="NUM_EPOCHS", default=1)
 parser.add_argument("--batch-size", type=int, dest="BATCH_SIZE", default=32)
@@ -67,6 +67,10 @@ LEARNING_RATE = int(args.LEARNING_RATE)
 # if prefetch_buffer_size is None then TensorFlow will use an optimal prefetch buffer size automatically
 if PREFETCH == -1:
 	PREFETCH = None
+
+# if save dir is not explicitly mentioned, it will be saved in model_checkpoint_dir/saved/ 
+if SAVE_MODEL_DIR == "":
+	SAVE_MODEL_DIR = os.path.join(MODEL_DIR, "saved")
 
 
 train_path = os.path.join(TFR_DIR, "train")
@@ -107,7 +111,7 @@ print("\n{0} GPUs available".format(NUM_GPUS))
 
 if DISTRIBUTE_FLAG:
 	strategy = tf.contrib.distribute.MirroredStrategy(num_gpus=NUM_GPUS)
-	config = tf.estimator.RunConfig(train_distribute=strategy)
+	config = tf.estimator.RunConfig(train_distribute=strategy, eval_distribute=strategy)
 else:
 	config = tf.estimator.RunConfig()
 
