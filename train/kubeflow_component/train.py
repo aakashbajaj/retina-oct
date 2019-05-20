@@ -1,8 +1,10 @@
 import tensorflow as tf
 import os
+import json
 import time
 
 import tensorflow.gfile as tf_reader
+from tensorflow.python.lib.io import file_io
 
 from tensorflow.python.client import device_lib
 
@@ -90,7 +92,6 @@ if tf_reader.IsDirectory(test_path):
 		filepath = os.path.join(test_path, filename)
 		testing_filenames.append(filepath)
 
-import json
 try:
 	with tf_reader.GFile(LABEL_LIST, 'rb') as fl:
 		labels_bytes = fl.read()
@@ -159,3 +160,37 @@ model_classifier.export_saved_model(
 	SAVE_MODEL_DIR,
 	serving_input_receiver_fn=serving_input_rcv_fn
 )
+
+# exporting metrics and tensorboard for kubeflow pipelines
+metrics = {
+	'metrics': [
+		{
+			'name': 'accuracy-score', # The name of the metric. Visualized as the column name in the runs table.
+			'numberValue':  (res['accuracy']*100.0), # The value of the metric. Must be a numeric value.
+			'format': "PERCENTAGE",   # The optional format of the metric. Supported values are "RAW" (displayed in raw format) and "PERCENTAGE" (displayed in percentage format).
+		},
+		{
+			'name': 'loss',
+			'numberValue':  (res['loss']), 
+		},
+		{
+			'name': 'global-step',
+			'numberValue':  (res['global_step']),
+		},
+	]
+}
+
+with file_io.FileIO('/mlpipeline-metrics.json', 'w') as fl:
+	json.dump(metrics, fl)
+
+metadata = {
+	'outputs' : [{
+		'type': 'tensorboard',
+		'source': MODEL_DIR,
+	}]
+}
+with file_io.FileIO('/mlpipeline-ui-metadata.json', 'w') as fl:
+	json.dump(metadata, fl)
+
+
+
