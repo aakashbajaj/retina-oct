@@ -28,10 +28,11 @@ parser.add_argument("--evaluate-flag", type=int, dest="EVALUATE_FLAG", default=1
 parser.add_argument("--distribute", type=int, dest="DISTRIBUTE_FLAG", default=1)
 
 # parameters
-parser.add_argument("--tfr-dir", required=True, dest="TFR_DIR", help="Folder containing converted records")
+parser.add_argument("--conv-dir", required=True, dest="CONV_DIR", help="Folder containing converted files")
+# parser.add_argument("--tfr-dir", required=True, dest="TFR_DIR", help="Folder containing converted records")
+# parser.add_argument("--label-list", required=True, dest="LABEL_LIST", help="Location of labels json file")
 parser.add_argument("--model-dir", required=True, dest="MODEL_DIR", help="Folder for model checkpointing")
 parser.add_argument("--save-model-dir", dest="SAVE_MODEL_DIR", help="Folder for exporting saved model", default="")
-parser.add_argument("--label-list", required=True, dest="LABEL_LIST", help="Location of labels json file")
 parser.add_argument("--num-epochs", type=int, dest="NUM_EPOCHS", default=1)
 parser.add_argument("--batch-size", type=int, dest="BATCH_SIZE", default=32)
 # parser.add_argument("--train-steps", type=int, dest="TRAIN_STEPS", default=10000)
@@ -50,10 +51,11 @@ EVALUATE_FLAG = args.EVALUATE_FLAG
 # SAVE_MODEL_FLAG = args.SAVE_MODEL_FLAG
 DISTRIBUTE_FLAG = args.DISTRIBUTE_FLAG
 
-TFR_DIR = args.TFR_DIR
+CONV_DIR = args.CONV_DIR
+# TFR_DIR = args.TFR_DIR
+# LABEL_LIST = args.LABEL_LIST
 MODEL_DIR = args.MODEL_DIR
 SAVE_MODEL_DIR = args.SAVE_MODEL_DIR
-LABEL_LIST = args.LABEL_LIST
 NUM_EPOCHS = int(args.NUM_EPOCHS)
 BATCH_SIZE = int(args.BATCH_SIZE)
 # TRAIN_STEPS = int(args.TRAIN_STEPS)
@@ -72,6 +74,8 @@ if PREFETCH == -1:
 if SAVE_MODEL_DIR == "":
 	SAVE_MODEL_DIR = os.path.join(MODEL_DIR, "saved")
 
+TFR_DIR = os.path.join(CONV_DIR, "tfrecords")
+LABEL_LIST = os.path.join(CONV_DIR, "labels.json")
 
 train_path = os.path.join(TFR_DIR, "train")
 test_path = os.path.join(TFR_DIR, "test")
