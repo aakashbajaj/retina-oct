@@ -10,7 +10,7 @@ import tensorflow.gfile as tf_reader
 tf.logging.set_verbosity(tf.logging.INFO)
 
 def cnn_model_fn(features, labels, mode):
-	image_tensor = features["img_tensor"]
+	image_tensor = features["image"]
 
 	input_layer = tf.reshape(image_tensor, [-1,256,256,1])
 
@@ -108,7 +108,7 @@ def cnn_model_fn(features, labels, mode):
 
 def dataset_input_fn(
 	filenames,
-	labels,
+	# labels,
 	image_size=(256,256,1),
 	shuffle=False,
 	batch_size=32,
@@ -117,7 +117,7 @@ def dataset_input_fn(
 	prefetch_buffer_size=None):
 
 	dataset = tf.data.TFRecordDataset(filenames)
-	num_classes = len(labels)
+	# num_classes = len(labels)
 
 	# parser function for reading stored tfrecords
 	def tfr_parser(data_record):
@@ -135,12 +135,12 @@ def dataset_input_fn(
 		label = tf.cast(sample['label'], tf.int64)
 
 		# return (img_arr, (tf.one_hot(label, num_classes)))
-		return ({"img_tensor":img_arr}, label)
+		return ({"image":img_arr}, label)
 
 	dataset = dataset.map(tfr_parser, num_parallel_calls=os.cpu_count())
 	
 	if shuffle and num_epochs:
-		dataset = dataset.shuffle(buffer_size).repeat(num_epochs)
+		dataset = dataset.repeat(num_epochs).shuffle(buffer_size)
 	elif shuffle:
 		dataset = dataset.shuffle(buffer_size)
 	elif num_epochs:
@@ -159,7 +159,7 @@ def _parse_function(filename):
 	# image_decoded = image_decoded/255.
 	image_decoded = tf.cast(image_decoded, tf.float32) / 255.
 	image_decoded.set_shape([256, 256, 1])
-	return {"img_tensor":image_decoded}
+	return {"image":image_decoded}
 	# return {"input_1": image_decoded}
 
 def predict_input_fn(image_path):
@@ -180,7 +180,7 @@ def predict_input_fn(image_path):
 
 # 	tf.print(images)
 
-# 	return tf.estimator.export.ServingInputReceiver({"img_tensor": images}, {'bytes': input_ph})
+# 	return tf.estimator.export.ServingInputReceiver({"image": images}, {'bytes': input_ph})
 
 
 def _img_string_to_tensor(image_string, image_size=(256, 256)):
@@ -192,32 +192,44 @@ def _img_string_to_tensor(image_string, image_size=(256, 256)):
     
 	return image_resized
 
-def serving_input_receiver_fn():
+# def serving_input_receiver_fn():
     
-    feature_spec = {
-        'img_tensor': tf.FixedLenFeature([], dtype=tf.string)
-    }
+#     feature_spec = {
+#         'image': tf.FixedLenFeature([], dtype=tf.string)
+#     }
     
-    default_batch_size = 1
+#     default_batch_size = 1
     
-    serialized_image = tf.placeholder(dtype=tf.string, shape=[None], name='inp_img_byte_string')
+#     serialized_image = tf.placeholder(dtype=tf.string, shape=[None], name='inp_img_byte_string')
     
-    received_tensors = { 'images': serialized_image }
-    # features = tf.parse_example(serialized_tf_example, feature_spec)
+#     received_tensors = { 'images': serialized_image }
+#     # features = tf.parse_example(serialized_tf_example, feature_spec)
     
-    fn = lambda image: _img_string_to_tensor(image)
+#     fn = lambda image: _img_string_to_tensor(image)
     
-    img_features = tf.map_fn(fn, serialized_image, dtype=tf.float32)
+#     img_features = tf.map_fn(fn, serialized_image, dtype=tf.float32)
     
-    return tf.estimator.export.ServingInputReceiver({'img_tensor': img_features}, received_tensors)
+#     return tf.estimator.export.ServingInputReceiver({'image': img_features}, received_tensors)
 
-# estimator.export_savedmodel('export', serving_input_receiver_fn)
+
+def serving_input_receiver_fn():
+	feature_spec = {
+		'image': tf.FixedLenFeature([], dtype=tf.string)
+	}
+	default_batch_size = 1
+	serialized_tf_example = tf.placeholder(dtype=tf.string, shape=[default_batch_size], name='input_image_tensor')
+	received_tensors = { 'images': serialized_tf_example }
+	features = tf.parse_example(serialized_tf_example, feature_spec)
+	fn = lambda image: _img_string_to_tensor(image, (256,256))
+	features['image'] = tf.map_fn(fn, features['image'], dtype=tf.float32)
+	
+	return tf.estimator.export.ServingInputReceiver(features, received_tensors)
 
 
 if __name__ == '__main__':
 
-	TFR_DIR = "/home/aakashbajaj5311/conv_data_256/conv_256_10may/tfrecords"
-	LABEL_LIST = "/home/aakashbajaj5311/conv_data_256/conv_256_10may/labels.json"
+	TFR_DIR = "/home/aakashbajaj5311/conv_256/conv_256_10may/tfrecords"
+	LABEL_LIST = "/home/aakashbajaj5311/conv_256/conv_256_10may/labels.json"
 
 	train_path = os.path.join(TFR_DIR, "train")
 	test_path = os.path.join(TFR_DIR, "test")
@@ -253,12 +265,12 @@ if __name__ == '__main__':
 	print("Testing:", testing_filenames)
 
 	strategy = tf.contrib.distribute.MirroredStrategy(num_gpus=2)
-	config = tf.estimator.RunConfig(train_distribute=strategy)
+	config = tf.estimator.RunConfig(train_distribute=strategy, eval_distribute=strategy)
 	# config = tf.estimator.RunConfig()
 
 	oct_classifier = tf.estimator.Estimator(
 		model_fn=cnn_model_fn,
-		model_dir="/home/aakashbajaj5311/train_models/oct_classifier_logging_test",
+		model_dir="/home/aakashbajaj5311/train_models/oct_classifier_test",
 		config=config)
 
 	tensors_to_log = {"probabilities": "softmax_tensor", "train_acc": "accuracy_op"}
@@ -272,16 +284,16 @@ if __name__ == '__main__':
 		shuffle=True,
 		# batch_size=BATCH_SIZE,
 		# buffer_size=2048,
-		num_epochs=1,
+		num_epochs=5,
 		# prefetch_buffer_size=PREFETCH
 		)
 
-	# oct_classifier.train(
-    # 	input_fn=oct_train_in,
-	# 	max_steps=7000,
-    # 	# steps=1000,
-    # 	# hooks=[logging_hook]
-    # 	)
+	oct_classifier.train(
+    	input_fn=oct_train_in,
+		max_steps=7000,
+    	# steps=1000,
+    	# hooks=[logging_hook]
+    	)
 
 	oct_test_in = lambda: dataset_input_fn(
 		testing_filenames,
@@ -328,6 +340,6 @@ if __name__ == '__main__':
 	print(c3)
 
 	oct_classifier.export_savedmodel(
-		"/home/aakashbajaj5311/train_models/oct_classifier_logging_test/saved",
+		"/home/aakashbajaj5311/train_models/oct_classifier_test/saved",
 		serving_input_receiver_fn=serving_input_receiver_fn
 	)
