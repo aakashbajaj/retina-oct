@@ -26,7 +26,7 @@ def dp_inf_pipe(
       ],
       # file_outputs={'output': '/tmp/output'}
 
-      ).apply(gcp.use_gcp_secret('user-gcp-sa'))
+      ).apply(gcp.use_gcp_secret('admin-gcp-sa'))
 
   # oct_data_prep.set_gpu_limit()
   # oct_data_prep.set_memory_request('G')
