@@ -90,8 +90,7 @@ def main(argv=None):
 
 
   logging.info('Getting credentials for GKE cluster %s.' % cluster)
-  subprocess.call(['gcloud', 'container', 'clusters', 'get-credentials', cluster,
-                   '--zone', zone])
+  subprocess.call(['gcloud', 'container', 'clusters', 'get-credentials', cluster, '--zone', zone])
 
   args_list = ['--%s=%s' % (k.replace('_', '-'),v)
                for k,v in six.iteritems(args_dict) if v is not None]
@@ -111,7 +110,8 @@ def main(argv=None):
       changed = data.replace('MODEL_NAME',args.model_name)
       changed1 = changed.replace('KUBEFLOW_NAMESPACE',KUBEFLOW_NAMESPACE)
       changed2 = changed1.replace('MODEL_PATH', args.model_path)
-      target.write(changed2)
+      changed3 = changed2.replace('NUM_GPUS', args.num_gpus)
+      target.write(changed3)
 
 
   logging.info('deploying model serving.')

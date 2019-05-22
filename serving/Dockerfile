@@ -2,7 +2,7 @@ FROM google/cloud-sdk:latest
 
 WORKDIR /app
 
-COPY deploy_tfserve.py tfserve-template_GPU.yaml tfserve-template_GPU.yaml ./
+COPY deploy_tfserve.py tfserve-template.yaml tfserve-template_GPU.yaml ./
 
 RUN apt-get update && \
 	apt-get install python3 python3-pip -y && \
