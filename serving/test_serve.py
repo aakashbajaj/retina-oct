@@ -6,7 +6,7 @@ from tensorflow_serving.apis import predict_pb2, prediction_service_pb2, model_p
 
 def make_request(stub, file_path):
     request = predict_pb2.PredictRequest()
-    request.model_spec.name = 'mnist'
+    request.model_spec.name = 'retina'
     #request.model_spec.signature_name = 'serving_default'
     
     if file_path.startswith('http'):
@@ -26,19 +26,19 @@ def make_request(stub, file_path):
     result_future = stub.Predict.future(request, 10.0)
     prediction = result_future.result()
 
-    print(prediction.outputs)
-    
-    predicted_classes = list(zip(prediction.outputs['classes'].int64_val, prediction.outputs['probabilities'].float_val))
+    print(prediction.outputs['classes'].int64_val)
+    print(prediction.outputs['probabilities'].float_val)
 
-    print(predicted_classes)
+    pred_class = (prediction.outputs['classes'].int64_val)[0]
+    pred_probs = prediction.outputs['probabilities'].float_val
+    pred_class_prob = pred_probs[pred_class]
     
-    predicted_classes = list(reversed(sorted(predicted_classes, key = lambda p: p[1])))
+    return pred_class, pred_class_prob
     
-    return predicted_classes
 
-channel = implementations.insecure_channel('35.243.223.246', 8500)
+channel = implementations.insecure_channel('35.231.6.147', 9000)
 stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
 
-dog_path = os.path.expanduser('/home/aakashbajaj5311/datasets/OCT2017/test/CNV/CNV-538779-1.jpeg')
+dog_path = os.path.expanduser('/home/techno/oct_data/NORMAL-2362579-1.jpeg')
 output = make_request(stub, dog_path)
 print(output)
