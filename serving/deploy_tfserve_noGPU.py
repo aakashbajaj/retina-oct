@@ -1,18 +1,3 @@
-# Copyright 2018 Google Inc. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-
 import argparse
 import datetime
 import json
@@ -33,11 +18,6 @@ def main(argv=None):
       '--model_name',
       help='...',
       required=True)
-
-  parser.add_argument(
-      '--num_gpus',
-      help='...',
-      default=0)
 
   parser.add_argument(
       '--model_path',
@@ -94,12 +74,8 @@ def main(argv=None):
 
   args_list = ['--%s=%s' % (k.replace('_', '-'),v)
                for k,v in six.iteritems(args_dict) if v is not None]
-  logging.info('Generating training template.')
+  logging.info('Generating tfserving template.')
 
-
-  if int(args.num_gpus) > 0:  
-    template_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'tfserve-template_GPU.yaml')
-  
 
   template_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'tfserve-template.yaml')
   target_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'tf-serve.yaml')
@@ -110,8 +86,7 @@ def main(argv=None):
       changed = data.replace('MODEL_NAME',args.model_name)
       changed1 = changed.replace('KUBEFLOW_NAMESPACE',KUBEFLOW_NAMESPACE)
       changed2 = changed1.replace('MODEL_PATH', args.model_path)
-      changed3 = changed2.replace('NUM_GPUS', str(args.num_gpus))
-      target.write(changed3)
+      target.write(changed2)
 
 
   logging.info('deploying model serving.')
