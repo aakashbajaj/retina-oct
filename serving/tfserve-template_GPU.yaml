@@ -66,7 +66,7 @@ spec:
         env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /secret/gcp-credentials/user-gcp-sa.json
-        image: tensorflow/serving:1.11.1-gpu
+        image: TFSERVE_IMAGE
         imagePullPolicy: IfNotPresent
         livenessProbe:
           initialDelaySeconds: 30

@@ -7,9 +7,9 @@ metadata:
       ---
       apiVersion: ambassador/v0
       kind:  Mapping
-      name: tfserving-predict-mapping-MODEL_NAME
+      name: tfserving-predict-mapping-MODEL_NAME-post
       prefix: /tfserving/models/MODEL_NAME
-      rewrite: /v1/models/MODEL_NAME:predict
+      rewrite: /models/MODEL_NAME:predict
       method: POST
       service: MODEL_NAME-service.kubeflow:8500
       ---
@@ -66,7 +66,7 @@ spec:
         env:
         - name: GOOGLE_APPLICATION_CREDENTIALS
           value: /secret/gcp-credentials/user-gcp-sa.json
-        image: TFSERVE_IMAGE
+        image: tensorflow/serving:1.11.1
         imagePullPolicy: IfNotPresent
         livenessProbe:
           initialDelaySeconds: 30
@@ -81,7 +81,6 @@ spec:
           limits:
             cpu: "4"
             memory: 4Gi
-            GPU_PLACEHOLDER
           requests:
             cpu: "1"
             memory: 1Gi
