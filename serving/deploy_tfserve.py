@@ -110,7 +110,7 @@ def main(argv=None):
       changed = data.replace('MODEL_NAME',args.model_name)
       changed1 = changed.replace('KUBEFLOW_NAMESPACE',KUBEFLOW_NAMESPACE)
       changed2 = changed1.replace('MODEL_PATH', args.model_path)
-      changed3 = changed2.replace('NUM_GPUS', args.num_gpus)
+      changed3 = changed2.replace('NUM_GPUS', str(args.num_gpus))
       target.write(changed3)
 
 
