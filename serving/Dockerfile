@@ -8,6 +8,6 @@ RUN apt-get update && \
 	apt-get install python3 python3-pip -y && \
 	pip3 install --upgrade pip && \
 	pip install tensorflow && \
-	pip install requests
+	pip install requests pyyaml
 
 ENTRYPOINT ["python3", "deploy_tfserve.py"]
