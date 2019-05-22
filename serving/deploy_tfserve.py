@@ -97,7 +97,7 @@ def main(argv=None):
   logging.info('Generating training template.')
 
 
-  if args.num_gpus > 0:  
+  if int(args.num_gpus) > 0:  
     template_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'tfserve-template_GPU.yaml')
   
 
