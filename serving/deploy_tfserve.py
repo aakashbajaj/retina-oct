@@ -99,10 +99,10 @@ def main(argv=None):
 
 
   if args.num_gpus > 0:  
-    template_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'tf-serve-template_GPU.yaml')
+    template_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'tfserve-template_GPU.yaml')
   
 
-  template_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'tf-serve-template.yaml')
+  template_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'tfserve-template.yaml')
   target_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'tf-serve.yaml')
 
   with open(template_file, 'r') as f:
