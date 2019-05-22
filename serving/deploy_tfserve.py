@@ -89,9 +89,9 @@ def main(argv=None):
   logging.info('Cluster: {0}\nZone: {1}\n'.format(cluster, zone))
 
 
-  # logging.info('Getting credentials for GKE cluster %s.' % cluster)
-  # subprocess.call(['gcloud', 'container', 'clusters', 'get-credentials', cluster,
-                   # '--zone', zone])
+  logging.info('Getting credentials for GKE cluster %s.' % cluster)
+  subprocess.call(['gcloud', 'container', 'clusters', 'get-credentials', cluster,
+                   '--zone', zone])
 
   args_list = ['--%s=%s' % (k.replace('_', '-'),v)
                for k,v in six.iteritems(args_dict) if v is not None]
