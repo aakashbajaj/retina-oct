@@ -7,9 +7,9 @@ metadata:
       ---
       apiVersion: ambassador/v0
       kind:  Mapping
-      name: tfserving-predict-mapping-MODEL_NAME-post
+      name: tfserving-predict-mapping-MODEL_NAME
       prefix: /tfserving/models/MODEL_NAME
-      rewrite: /models/MODEL_NAME:predict
+      rewrite: /v1/models/MODEL_NAME:predict
       method: POST
       service: MODEL_NAME-service.kubeflow:8500
       ---
@@ -39,18 +39,6 @@ spec:
     app: MODEL_NAME
   type: LoadBalancer
 ---
-apiVersion: v1
-data:
-  monitoring_config.txt: |-
-    prometheus_config: {
-      enable: true,
-      path: "/monitoring/prometheus/metrics"
-    }
-kind: ConfigMap
-metadata:
-  name: MODEL_NAME-v1-config
-  namespace: KUBEFLOW_NAMESPACE
----
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -73,7 +61,6 @@ spec:
         - --rest_api_port=8500
         - --model_name=MODEL_NAME
         - --model_base_path=MODEL_PATH
-        - --monitoring_config_file=/var/config/monitoring_config.txt
         command:
         - /usr/bin/tensorflow_model_server
         env:
@@ -94,19 +81,14 @@ spec:
           limits:
             cpu: "4"
             memory: 4Gi
-            nvidia.com/gpu: NUM_GPUS
+            nvidia.com/gpu: 1
           requests:
             cpu: "1"
             memory: 1Gi
         volumeMounts:
-        - mountPath: /var/config/
-          name: config-volume
         - mountPath: /secret/gcp-credentials
           name: gcp-credentials
       volumes:
-      - configMap:
-          name: MODEL_NAME-v1-config
-        name: config-volume
       - name: gcp-credentials
         secret:
           secretName: user-gcp-sa

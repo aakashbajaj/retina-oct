@@ -36,7 +36,7 @@ def make_request(stub, file_path):
     return pred_class, pred_class_prob
     
 
-channel = implementations.insecure_channel('34.73.240.123', 9000)
+channel = implementations.insecure_channel('35.227.43.111', 9000)
 stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
 
 dog_path = os.path.expanduser('/home/techno/oct_data/NORMAL-2362579-1.jpeg')
