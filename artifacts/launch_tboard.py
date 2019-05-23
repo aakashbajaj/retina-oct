@@ -14,9 +14,9 @@ metadata = {
 		'source': MODEL_DIR,
 	}]
 }
-with file_io.FileIO('/mlpipeline-ui-metadata.json', 'w') as fl:
+with open('/mlpipeline-ui-metadata.json', 'w') as fl:
 	json.dump(metadata, fl)
 
-with file_io.FileIO('/mlpipeline-ui-metadata.json', 'r') as fl:
+with open('/mlpipeline-ui-metadata.json', 'r') as fl:
 	read_meta = json.load(fl)
 	print(read_meta)
