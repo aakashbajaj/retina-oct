@@ -37,7 +37,7 @@ def dp_inf_pipe(
 
   train = dsl.ContainerOp(
     name='train',
-    image='gcr.io/speedy-aurora-193605/cnn_train_dis:v3',
+    image='gcr.io/speedy-aurora-193605/cnn_train_dis:latest',
     arguments=["--conv-dir", out_dir,
         "--model-dir", model_dir,
         "--save-model-dir", save_model_dir,
@@ -52,6 +52,15 @@ def dp_inf_pipe(
         "--channels", channels,
         ]
     ).apply(gcp.use_gcp_secret('user-gcp-sa'))
+
+  tensorbaord = dsl.ContainerOp(
+    name='tensorbaord',
+    image='gcr.io/speedy-aurora-193605/model-tensorbaord:latest',
+    arguments=["--model-dir", model_dir,
+      ],
+      # file_outputs={'output': '/tmp/output'}
+
+      ).apply(gcp.use_gcp_secret('user-gcp-sa'))  
 
   tfserve = dsl.ContainerOp(
     name='tfserve',

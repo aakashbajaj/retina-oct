@@ -68,7 +68,7 @@ def dp_inf_pipe(
 
   train = dsl.ContainerOp(
     name='train',
-    image='gcr.io/speedy-aurora-193605/cnn_train_dis:v2',
+    image='gcr.io/speedy-aurora-193605/cnn_train_dis:latest',
     arguments=["--conv-dir", out_dir,
         "--model-dir", model_dir,
         "--save-model-dir", save_model_dir,
