@@ -14,6 +14,7 @@ def dp_inf_pipe(
   save_model_dir: dsl.PipelineParam = dsl.PipelineParam(name='save-model-dir', value="DIR_TO_EXPORT_SAVED_MODEL"),
   model_name: dsl.PipelineParam = dsl.PipelineParam(name='model-name', value='MODEL_NAME_FOR_SERVING'),
 
+  train_flag: dsl.PipelineParam = dsl.PipelineParam(name='train-flag', value=0),
 
   # runner: dsl.PipelineParam = dsl.PipelineParam(name='runner', value=""),
   height: dsl.PipelineParam = dsl.PipelineParam(name='height', value=256),
@@ -40,6 +41,7 @@ def dp_inf_pipe(
     image='gcr.io/speedy-aurora-193605/cnn_train_dis:latest',
     arguments=["--conv-dir", out_dir,
         "--model-dir", model_dir,
+        "--train-flag", train_flag,
         "--save-model-dir", save_model_dir,
         "--num-epochs", epochs,
         "--batch-size", batch_size,
@@ -80,4 +82,4 @@ def dp_inf_pipe(
 
 if __name__ == '__main__':
   import kfp.compiler as compiler
-  compiler.Compiler().compile(dp_inf_pipe,  'train_test_4cpu_2gpu_8gb.tar.gz')
+  compiler.Compiler().compile(dp_inf_pipe,  'train_flag_serve.tar.gz')

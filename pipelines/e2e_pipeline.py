@@ -16,6 +16,7 @@ def dp_inf_pipe(
   save_model_dir: dsl.PipelineParam = dsl.PipelineParam(name='save-model-dir', value="DIR_TO_EXPORT_SAVED_MODEL"),
   model_name: dsl.PipelineParam = dsl.PipelineParam(name='model-name', value='MODEL_NAME_FOR_SERVING'),
 
+  train_flag: dsl.PipelineParam = dsl.PipelineParam(name='train-flag', value=1),
 
   # runner: dsl.PipelineParam = dsl.PipelineParam(name='runner', value=""),
   num_shards: dsl.PipelineParam = dsl.PipelineParam(name='num-shards', value=5),
