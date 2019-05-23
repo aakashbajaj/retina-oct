@@ -17,7 +17,7 @@ def dp_inf_pipe(
 #   inf_batch_size: dsl.PipelineParam = dsl.PipelineParam(name='inf_batch_size', value=10)
 ):
 
-  dataprep = dsl.ContainerOp(
+  tfserve = dsl.ContainerOp(
     name='tfserve',
     image='gcr.io/speedy-aurora-193605/retina-tfserve:latest',
     arguments=["--model_name", model_name,

@@ -6,7 +6,7 @@ from tensorflow_serving.apis import predict_pb2, prediction_service_pb2, model_p
 
 def make_request(stub, file_path):
     request = predict_pb2.PredictRequest()
-    request.model_spec.name = 'retin2'
+    request.model_spec.name = 'retgpu'
     #request.model_spec.signature_name = 'serving_default'
     
     if file_path.startswith('http'):
@@ -36,7 +36,7 @@ def make_request(stub, file_path):
     return pred_class, pred_class_prob
     
 
-channel = implementations.insecure_channel('35.231.6.147', 9000)
+channel = implementations.insecure_channel('34.73.91.4', 9000)
 stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
 
 dog_path = os.path.expanduser('/home/techno/oct_data/NORMAL-2362579-1.jpeg')
