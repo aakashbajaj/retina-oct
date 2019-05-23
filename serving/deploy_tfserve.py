@@ -39,13 +39,13 @@ def main(argv=None):
   KUBEFLOW_NAMESPACE = 'kubeflow'
 
   print("contents:")
-  subprocess.call(['ls', '/secret/'])
+  subprocess.call(['ls', '/secret/gcp-credentials'])
   print("GOOGLE_APPLICATION_CREDENTIALS:")
-  subprocess.call(['echo', '$GOOGLE_APPLICATION_CREDENTIALS'])
+  print("environment: ", os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'))
   print("user-gcp:")
-  subprocess.call(['cat', '/secret/user-gcp-sa.json'])
+  subprocess.call(['cat', '/secret/gcp-credentials/user-gcp-sa.json'])
   print("admin-gcp:")
-  subprocess.call(['cat', '/secret/admin-gcp-sa.json'])
+  subprocess.call(['cat', '/secret/gcp-credentials/admin-gcp-sa.json'])
 
   # Make sure model dir exists before proceeding
   retries = 0
