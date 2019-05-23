@@ -89,7 +89,7 @@ def main(argv=None):
   args_list = ['--%s=%s' % (k.replace('_', '-'),v)
                for k,v in six.iteritems(args_dict) if v is not None]
   logging.info('Generating tfserving template.')
-  logging.info("environment 2: ", os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'))
+  print("environment 2: ", os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'))
 
 
   template_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'tfserve-template.yaml')
