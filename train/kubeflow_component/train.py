@@ -133,6 +133,15 @@ model_classifier = tf.estimator.Estimator(
 
 dataset_input_fn = data_utils.gen_input_fn(image_size=(HEIGHT, WIDTH, CHANNELS), num_classes=len(labels))
 
+metadata = {
+	'outputs' : [{
+		'type': 'tensorboard',
+		'source': MODEL_DIR,
+	}]
+}
+with file_io.FileIO('/mlpipeline-ui-metadata.json', 'w') as fl:
+	json.dump(metadata, fl)
+
 if TRAIN_FLAG:
 	oct_train_in = lambda:dataset_input_fn(
 		training_filenames,
@@ -186,15 +195,6 @@ metrics = {
 
 with file_io.FileIO('/mlpipeline-metrics.json', 'w') as fl:
 	json.dump(metrics, fl)
-
-metadata = {
-	'outputs' : [{
-		'type': 'tensorboard',
-		'source': MODEL_DIR,
-	}]
-}
-with file_io.FileIO('/mlpipeline-ui-metadata.json', 'w') as fl:
-	json.dump(metadata, fl)
 
 
 
