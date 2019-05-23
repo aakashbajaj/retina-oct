@@ -84,6 +84,15 @@ def dp_inf_pipe(
         ]
     ).apply(gcp.use_gcp_secret('user-gcp-sa'))
 
+  tensorbaord = dsl.ContainerOp(
+    name='tensorbaord',
+    image='gcr.io/speedy-aurora-193605/model-tensorbaord:latest',
+    arguments=["--model-dir", model_dir,
+      ],
+      # file_outputs={'output': '/tmp/output'}
+
+      ).apply(gcp.use_gcp_secret('user-gcp-sa'))  
+
   tfserve = dsl.ContainerOp(
     name='tfserve',
     image='gcr.io/speedy-aurora-193605/retina-tfserve:latest',
@@ -100,6 +109,7 @@ def dp_inf_pipe(
   train.set_cpu_request('4')
   train.after(dataprep)
   tfserve.after(train)
+  tensorbaord.after(dataprep)
 
 if __name__ == '__main__':
   import kfp.compiler as compiler
