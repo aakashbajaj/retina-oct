@@ -1,0 +1,89 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: retinal-oct-tf-serve-test-
+spec:
+  arguments:
+    parameters:
+    - name: model-name
+      value: MODEL_NAME
+    - name: model-path
+      value: MODEL_PATH
+    - name: num-gpus
+      value: '0'
+  entrypoint: retinal-oct-tf-serve-test
+  serviceAccountName: pipeline-runner
+  templates:
+  - dag:
+      tasks:
+      - arguments:
+          parameters:
+          - name: model-name
+            value: '{{inputs.parameters.model-name}}'
+          - name: model-path
+            value: '{{inputs.parameters.model-path}}'
+          - name: num-gpus
+            value: '{{inputs.parameters.num-gpus}}'
+        name: tfserve
+        template: tfserve
+    inputs:
+      parameters:
+      - name: model-name
+      - name: model-path
+      - name: num-gpus
+    name: retinal-oct-tf-serve-test
+  - container:
+      args:
+      - --model_name
+      - '{{inputs.parameters.model-name}}'
+      - --model_path
+      - '{{inputs.parameters.model-path}}'
+      - --num_gpus
+      - '{{inputs.parameters.num-gpus}}'
+      env:
+      - name: GOOGLE_APPLICATION_CREDENTIALS
+        value: /secret/gcp-credentials/user-gcp-sa.json
+      - name: CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE
+        value: /secret/gcp-credentials/user-gcp-sa.json
+      image: gcr.io/speedy-aurora-193605/retina-tfserve:latest
+      volumeMounts:
+      - mountPath: /secret/gcp-credentials
+        name: gcp-credentials
+    inputs:
+      parameters:
+      - name: model-name
+      - name: model-path
+      - name: num-gpus
+    name: tfserve
+    outputs:
+      artifacts:
+      - name: mlpipeline-ui-metadata
+        path: /mlpipeline-ui-metadata.json
+        s3:
+          accessKeySecret:
+            key: accesskey
+            name: mlpipeline-minio-artifact
+          bucket: mlpipeline
+          endpoint: minio-service.kubeflow:9000
+          insecure: true
+          key: runs/{{workflow.uid}}/{{pod.name}}/mlpipeline-ui-metadata.tgz
+          secretKeySecret:
+            key: secretkey
+            name: mlpipeline-minio-artifact
+      - name: mlpipeline-metrics
+        path: /mlpipeline-metrics.json
+        s3:
+          accessKeySecret:
+            key: accesskey
+            name: mlpipeline-minio-artifact
+          bucket: mlpipeline
+          endpoint: minio-service.kubeflow:9000
+          insecure: true
+          key: runs/{{workflow.uid}}/{{pod.name}}/mlpipeline-metrics.tgz
+          secretKeySecret:
+            key: secretkey
+            name: mlpipeline-minio-artifact
+  volumes:
+  - name: gcp-credentials
+    secret:
+      secretName: admin-gcp-sa

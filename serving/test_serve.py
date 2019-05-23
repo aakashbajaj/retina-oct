@@ -4,6 +4,15 @@ import tensorflow as tf
 from grpc.beta import implementations
 from tensorflow_serving.apis import predict_pb2, prediction_service_pb2, model_pb2
 
+
+
+# https://stackoverflow.com/questions/42519010/how-to-do-batching-in-tensorflow-serving
+# try method for batch prediction
+# need changes on serving side too
+
+
+
+
 def make_request(stub, file_path):
     request = predict_pb2.PredictRequest()
     request.model_spec.name = 'retgpu'

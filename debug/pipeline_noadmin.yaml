@@ -1,0 +1,287 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: retinal-oct-
+spec:
+  arguments:
+    parameters:
+    - name: out-dir
+      value: GCS_TFRECORD_OUTDIR_HERE
+    - name: model-dir
+      value: MODEL_CHECKPOINT_DIR_HERE
+    - name: save-model-dir
+      value: DIR_TO_EXPORT_SAVED_MODEL
+    - name: model-name
+      value: MODEL_NAME_FOR_SERVING
+    - name: train-flag
+      value: '0'
+    - name: height
+      value: '256'
+    - name: width
+      value: '256'
+    - name: channels
+      value: '1'
+    - name: eval-steps
+      value: '10000'
+    - name: epochs
+      value: '1'
+    - name: batch-size
+      value: '32'
+    - name: max-train-steps
+      value: '10000'
+    - name: prefetch-buffer-size
+      value: '-1'
+    - name: num-gpus-serve
+      value: '0'
+  entrypoint: retinal-oct
+  serviceAccountName: pipeline-runner
+  templates:
+  - dag:
+      tasks:
+      - arguments:
+          parameters:
+          - name: model-dir
+            value: '{{inputs.parameters.model-dir}}'
+        name: tensorbaord
+        template: tensorbaord
+      - arguments:
+          parameters:
+          - name: model-name
+            value: '{{inputs.parameters.model-name}}'
+          - name: num-gpus-serve
+            value: '{{inputs.parameters.num-gpus-serve}}'
+          - name: save-model-dir
+            value: '{{inputs.parameters.save-model-dir}}'
+        dependencies:
+        - train
+        name: tfserve
+        template: tfserve
+      - arguments:
+          parameters:
+          - name: batch-size
+            value: '{{inputs.parameters.batch-size}}'
+          - name: channels
+            value: '{{inputs.parameters.channels}}'
+          - name: epochs
+            value: '{{inputs.parameters.epochs}}'
+          - name: eval-steps
+            value: '{{inputs.parameters.eval-steps}}'
+          - name: height
+            value: '{{inputs.parameters.height}}'
+          - name: max-train-steps
+            value: '{{inputs.parameters.max-train-steps}}'
+          - name: model-dir
+            value: '{{inputs.parameters.model-dir}}'
+          - name: out-dir
+            value: '{{inputs.parameters.out-dir}}'
+          - name: prefetch-buffer-size
+            value: '{{inputs.parameters.prefetch-buffer-size}}'
+          - name: save-model-dir
+            value: '{{inputs.parameters.save-model-dir}}'
+          - name: train-flag
+            value: '{{inputs.parameters.train-flag}}'
+          - name: width
+            value: '{{inputs.parameters.width}}'
+        name: train
+        template: train
+    inputs:
+      parameters:
+      - name: batch-size
+      - name: channels
+      - name: epochs
+      - name: eval-steps
+      - name: height
+      - name: max-train-steps
+      - name: model-dir
+      - name: model-name
+      - name: num-gpus-serve
+      - name: out-dir
+      - name: prefetch-buffer-size
+      - name: save-model-dir
+      - name: train-flag
+      - name: width
+    name: retinal-oct
+  - container:
+      args:
+      - --model-dir
+      - '{{inputs.parameters.model-dir}}'
+      env:
+      - name: GOOGLE_APPLICATION_CREDENTIALS
+        value: /secret/gcp-credentials/user-gcp-sa.json
+      - name: CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE
+        value: /secret/gcp-credentials/user-gcp-sa.json
+      image: gcr.io/speedy-aurora-193605/model-tensorbaord:latest
+      volumeMounts:
+      - mountPath: /secret/gcp-credentials
+        name: gcp-credentials
+    inputs:
+      parameters:
+      - name: model-dir
+    name: tensorbaord
+    outputs:
+      artifacts:
+      - name: mlpipeline-ui-metadata
+        path: /mlpipeline-ui-metadata.json
+        s3:
+          accessKeySecret:
+            key: accesskey
+            name: mlpipeline-minio-artifact
+          bucket: mlpipeline
+          endpoint: minio-service.kubeflow:9000
+          insecure: true
+          key: runs/{{workflow.uid}}/{{pod.name}}/mlpipeline-ui-metadata.tgz
+          secretKeySecret:
+            key: secretkey
+            name: mlpipeline-minio-artifact
+      - name: mlpipeline-metrics
+        path: /mlpipeline-metrics.json
+        s3:
+          accessKeySecret:
+            key: accesskey
+            name: mlpipeline-minio-artifact
+          bucket: mlpipeline
+          endpoint: minio-service.kubeflow:9000
+          insecure: true
+          key: runs/{{workflow.uid}}/{{pod.name}}/mlpipeline-metrics.tgz
+          secretKeySecret:
+            key: secretkey
+            name: mlpipeline-minio-artifact
+  - container:
+      args:
+      - --model_name
+      - '{{inputs.parameters.model-name}}'
+      - --model_path
+      - '{{inputs.parameters.save-model-dir}}'
+      - --num_gpus
+      - '{{inputs.parameters.num-gpus-serve}}'
+      env:
+      - name: GOOGLE_APPLICATION_CREDENTIALS
+        value: /secret/gcp-credentials/user-gcp-sa.json
+      - name: CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE
+        value: /secret/gcp-credentials/user-gcp-sa.json
+      image: gcr.io/speedy-aurora-193605/retina-tfserve:latest
+      volumeMounts:
+      - mountPath: /secret/gcp-credentials
+        name: gcp-credentials
+    inputs:
+      parameters:
+      - name: model-name
+      - name: num-gpus-serve
+      - name: save-model-dir
+    name: tfserve
+    outputs:
+      artifacts:
+      - name: mlpipeline-ui-metadata
+        path: /mlpipeline-ui-metadata.json
+        s3:
+          accessKeySecret:
+            key: accesskey
+            name: mlpipeline-minio-artifact
+          bucket: mlpipeline
+          endpoint: minio-service.kubeflow:9000
+          insecure: true
+          key: runs/{{workflow.uid}}/{{pod.name}}/mlpipeline-ui-metadata.tgz
+          secretKeySecret:
+            key: secretkey
+            name: mlpipeline-minio-artifact
+      - name: mlpipeline-metrics
+        path: /mlpipeline-metrics.json
+        s3:
+          accessKeySecret:
+            key: accesskey
+            name: mlpipeline-minio-artifact
+          bucket: mlpipeline
+          endpoint: minio-service.kubeflow:9000
+          insecure: true
+          key: runs/{{workflow.uid}}/{{pod.name}}/mlpipeline-metrics.tgz
+          secretKeySecret:
+            key: secretkey
+            name: mlpipeline-minio-artifact
+  - container:
+      args:
+      - --conv-dir
+      - '{{inputs.parameters.out-dir}}'
+      - --model-dir
+      - '{{inputs.parameters.model-dir}}'
+      - --train-flag
+      - '{{inputs.parameters.train-flag}}'
+      - --save-model-dir
+      - '{{inputs.parameters.save-model-dir}}'
+      - --num-epochs
+      - '{{inputs.parameters.epochs}}'
+      - --batch-size
+      - '{{inputs.parameters.batch-size}}'
+      - --max-train-steps
+      - '{{inputs.parameters.max-train-steps}}'
+      - --eval-steps
+      - '{{inputs.parameters.eval-steps}}'
+      - --prefetch-buffer
+      - '{{inputs.parameters.prefetch-buffer-size}}'
+      - --height
+      - '{{inputs.parameters.height}}'
+      - --width
+      - '{{inputs.parameters.width}}'
+      - --channels
+      - '{{inputs.parameters.channels}}'
+      env:
+      - name: GOOGLE_APPLICATION_CREDENTIALS
+        value: /secret/gcp-credentials/user-gcp-sa.json
+      - name: CLOUDSDK_AUTH_CREDENTIAL_FILE_OVERRIDE
+        value: /secret/gcp-credentials/user-gcp-sa.json
+      image: gcr.io/speedy-aurora-193605/cnn_train_dis:latest
+      resources:
+        limits:
+          nvidia.com/gpu: '2'
+        requests:
+          cpu: '4'
+          memory: 8G
+      volumeMounts:
+      - mountPath: /secret/gcp-credentials
+        name: gcp-credentials
+    inputs:
+      parameters:
+      - name: batch-size
+      - name: channels
+      - name: epochs
+      - name: eval-steps
+      - name: height
+      - name: max-train-steps
+      - name: model-dir
+      - name: out-dir
+      - name: prefetch-buffer-size
+      - name: save-model-dir
+      - name: train-flag
+      - name: width
+    name: train
+    outputs:
+      artifacts:
+      - name: mlpipeline-ui-metadata
+        path: /mlpipeline-ui-metadata.json
+        s3:
+          accessKeySecret:
+            key: accesskey
+            name: mlpipeline-minio-artifact
+          bucket: mlpipeline
+          endpoint: minio-service.kubeflow:9000
+          insecure: true
+          key: runs/{{workflow.uid}}/{{pod.name}}/mlpipeline-ui-metadata.tgz
+          secretKeySecret:
+            key: secretkey
+            name: mlpipeline-minio-artifact
+      - name: mlpipeline-metrics
+        path: /mlpipeline-metrics.json
+        s3:
+          accessKeySecret:
+            key: accesskey
+            name: mlpipeline-minio-artifact
+          bucket: mlpipeline
+          endpoint: minio-service.kubeflow:9000
+          insecure: true
+          key: runs/{{workflow.uid}}/{{pod.name}}/mlpipeline-metrics.tgz
+          secretKeySecret:
+            key: secretkey
+            name: mlpipeline-minio-artifact
+  volumes:
+  - name: gcp-credentials
+    secret:
+      secretName: user-gcp-sa
