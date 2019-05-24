@@ -10,14 +10,14 @@ metrics = {
 		{
 			'name': 'train-loss',
 			'numberValue':  str(0.321564),
-			'format': "RAW", 
+			'format': "PERCENTAGE", 
 		},
 	]
 }
 
-with file_io.FileIO('/mlpipeline-metrics.json', 'w') as fl:
+with open('/mlpipeline-metrics.json', 'w') as fl:
 	json.dump(metrics, fl)
 
-with file_io.FileIO('/mlpipeline-metrics.json', 'r') as fl:
+with open('/mlpipeline-metrics.json', 'r') as fl:
 	read_metrics = json.load(fl)
 	print(read_metrics)
