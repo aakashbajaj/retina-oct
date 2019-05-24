@@ -49,24 +49,24 @@ def main(argv=None):
   subprocess.call(['cat', '/secret/gcp-credentials/admin-gcp-sa.json'])
 
   # Make sure model dir exists before proceeding
-  retries = 0
-  sleeptime = 5
-  while retries < 20:
-    try:
-      model_dir = os.path.join(args.model_path, file_io.list_directory(args.model_path)[-1])
-      logging.info(model_dir)
-      print("model subdir: %s" % model_dir)
-      break
-    except Exception as e:
-      print(e)
-      logging.info("Sleeping")
-      print("Sleeping %s seconds to sync with GCS..." % sleeptime)
-      time.sleep(sleeptime)
-      retries += 1
-      sleeptime *= 2
-  if retries >=20:
-    print("could not get model subdir from %s, exiting" % args.model_path)
-    exit(1)
+  # retries = 0
+  # sleeptime = 5
+  # while retries < 20:
+  #   try:
+  #     model_dir = os.path.join(args.model_path, file_io.list_directory(args.model_path)[-1])
+  #     logging.info(model_dir)
+  #     print("model subdir: %s" % model_dir)
+  #     break
+  #   except Exception as e:
+  #     logging.info(e)
+  #     logging.info("Sleeping")
+  #     print("Sleeping %s seconds to sync with GCS..." % sleeptime)
+  #     time.sleep(sleeptime)
+  #     retries += 1
+  #     sleeptime *= 2
+  # if retries >=20:
+  #   print("could not get model subdir from %s, exiting" % args.model_path)
+  #   exit(1)
 
   
   args_dict = vars(args)
