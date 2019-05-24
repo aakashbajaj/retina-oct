@@ -183,12 +183,9 @@ metrics = {
 			'format': "PERCENTAGE",   # The optional format of the metric. Supported values are "RAW" (displayed in raw format) and "PERCENTAGE" (displayed in percentage format).
 		},
 		{
-			'name': 'loss',
-			'numberValue':  str(res['loss']), 
-		},
-		{
-			'name': 'global-step',
-			'numberValue':  str(res['global_step']),
+			'name': 'train-loss',
+			'numberValue':  str(res['loss']),
+			'format': "RAW", 
 		},
 	]
 }
