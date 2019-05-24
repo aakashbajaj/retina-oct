@@ -29,7 +29,7 @@ def dp_inf_pipe(
   
   eval_steps: dsl.PipelineParam = dsl.PipelineParam(name='eval-steps', value=10000),
   epochs: dsl.PipelineParam = dsl.PipelineParam(name='num-epochs', value=1),
-  batch_size: dsl.PipelineParam = dsl.PipelineParam(name='batch-size', value=64),
+  batch_size: dsl.PipelineParam = dsl.PipelineParam(name='batch-size', value=32),
   max_train_steps: dsl.PipelineParam = dsl.PipelineParam(name='max-train-steps', value=10000),
   prefetch_buffer_size: dsl.PipelineParam = dsl.PipelineParam(name='prefetch-buffer', value=-1),
 
@@ -44,7 +44,7 @@ def dp_inf_pipe(
 
   dataprep = dsl.ContainerOp(
     name='dataprep',
-    image='gcr.io/speedy-aurora-193605/prep_tfr_df:v1',
+    image='gcr.io/speedy-aurora-193605/prep_tfr_df:latest',
     arguments=["--input-dir", inp_dir,
       "--output-dir", out_dir,
       "--num-shards", num_shards,
@@ -58,7 +58,7 @@ def dp_inf_pipe(
       ],
       # file_outputs={'output': '/tmp/output'}
 
-      ).apply(gcp.use_gcp_secret('user-gcp-sa'))
+      ).apply(gcp.use_gcp_secret(secret_name='admin-gcp-sa', secret_file_path_in_volume='/admin-gcp-sa.json', volume_name='gcp-credentials-admin-gcp-sa'))
 
   # oct_data_prep.set_gpu_limit(2)
   # oct_data_prep.set_memory_request('G')
@@ -73,6 +73,7 @@ def dp_inf_pipe(
     arguments=["--conv-dir", out_dir,
         "--model-dir", model_dir,
         "--save-model-dir", save_model_dir,
+        "--train-flag", train_flag,
         "--num-epochs", epochs,
         "--batch-size", batch_size,
         "--max-train-steps", max_train_steps,
@@ -83,7 +84,7 @@ def dp_inf_pipe(
         "--width", width,
         "--channels", channels,
         ]
-    ).apply(gcp.use_gcp_secret('user-gcp-sa'))
+    ).apply(gcp.use_gcp_secret(secret_name='user-gcp-sa', secret_file_path_in_volume='/user-gcp-sa.json', volume_name='gcp-credentials-user-gcp-sa'))
 
   tensorbaord = dsl.ContainerOp(
     name='tensorbaord',
@@ -92,7 +93,7 @@ def dp_inf_pipe(
       ],
       # file_outputs={'output': '/tmp/output'}
 
-      ).apply(gcp.use_gcp_secret('user-gcp-sa'))  
+      ).apply(gcp.use_gcp_secret(secret_name='user-gcp-sa', secret_file_path_in_volume='/user-gcp-sa.json', volume_name='gcp-credentials-user-gcp-sa'))
 
   tfserve = dsl.ContainerOp(
     name='tfserve',
@@ -103,7 +104,7 @@ def dp_inf_pipe(
       ],
       # file_outputs={'output': '/tmp/output'}
 
-      ).apply(gcp.use_gcp_secret('admin-gcp-sa'))
+      ).apply(gcp.use_gcp_secret(secret_name='admin-gcp-sa', secret_file_path_in_volume='/admin-gcp-sa.json', volume_name='gcp-credentials-admin-gcp-sa'))
       
   train.set_gpu_limit('2')
   train.set_memory_request('8G')

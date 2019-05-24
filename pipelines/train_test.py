@@ -53,16 +53,16 @@ def dp_inf_pipe(
         "--width", width,
         "--channels", channels,
         ]
-    ).apply(gcp.use_gcp_secret('user-gcp-sa'))
+    ).apply(gcp.use_gcp_secret(secret_name='user-gcp-sa', secret_file_path_in_volume='/user-gcp-sa.json', volume_name='gcp-credentials-user-gcp-sa'))
 
-  tensorbaord = dsl.ContainerOp(
-    name='tensorbaord',
+  traintensorbaord = dsl.ContainerOp(
+    name='traintensorbaord',
     image='gcr.io/speedy-aurora-193605/model-tensorbaord:latest',
     arguments=["--model-dir", model_dir,
       ],
       # file_outputs={'output': '/tmp/output'}
 
-      ).apply(gcp.use_gcp_secret('user-gcp-sa'))  
+      ).apply(gcp.use_gcp_secret(secret_name='user-gcp-sa', secret_file_path_in_volume='/user-gcp-sa.json', volume_name='gcp-credentials-user-gcp-sa'))  
 
   tfserve = dsl.ContainerOp(
     name='tfserve',
@@ -73,7 +73,7 @@ def dp_inf_pipe(
       ],
       # file_outputs={'output': '/tmp/output'}
 
-      ).apply(gcp.use_gcp_secret('admin-gcp-sa'))
+      ).apply(gcp.use_gcp_secret(secret_name='admin-gcp-sa', secret_file_path_in_volume='/admin-gcp-sa.json', volume_name='gcp-credentials-admin-gcp-sa'))
       
   train.set_gpu_limit('2')
   train.set_memory_request('8G')
@@ -82,4 +82,4 @@ def dp_inf_pipe(
 
 if __name__ == '__main__':
   import kfp.compiler as compiler
-  compiler.Compiler().compile(dp_inf_pipe,  'train_flag_serve.tar.gz')
+  compiler.Compiler().compile(dp_inf_pipe,  'train_admin_sa.tar.gz')
