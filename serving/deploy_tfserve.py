@@ -37,6 +37,7 @@ def main(argv=None):
   args = parser.parse_args()
 
   KUBEFLOW_NAMESPACE = 'kubeflow'
+  logging.getLogger().setLevel(logging.INFO)
 
   print("contents:")
   subprocess.call(['ls', '/secret/gcp-credentials'])
@@ -53,10 +54,12 @@ def main(argv=None):
   while retries < 20:
     try:
       model_dir = os.path.join(args.model_path, file_io.list_directory(args.model_path)[-1])
+      logging.info(model_dir)
       print("model subdir: %s" % model_dir)
       break
     except Exception as e:
       print(e)
+      logging.info("Sleeping")
       print("Sleeping %s seconds to sync with GCS..." % sleeptime)
       time.sleep(sleeptime)
       retries += 1
@@ -65,7 +68,7 @@ def main(argv=None):
     print("could not get model subdir from %s, exiting" % args.model_path)
     exit(1)
 
-  logging.getLogger().setLevel(logging.INFO)
+  
   args_dict = vars(args)
   if args.cluster and args.zone:
     cluster = args_dict.pop('cluster')
@@ -83,8 +86,8 @@ def main(argv=None):
   logging.info('Cluster: {0}\nZone: {1}\n'.format(cluster, zone))
 
 
-  logging.info('Getting credentials for GKE cluster %s.' % cluster)
-  subprocess.call(['gcloud', 'container', 'clusters', 'get-credentials', cluster, '--zone', zone])
+  # logging.info('Getting credentials for GKE cluster %s.' % cluster)
+  # subprocess.call(['gcloud', 'container', 'clusters', 'get-credentials', cluster, '--zone', zone])
 
   args_list = ['--%s=%s' % (k.replace('_', '-'),v)
                for k,v in six.iteritems(args_dict) if v is not None]
