@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:latest-py3
+FROM google/cloud-sdk:latest
 
 WORKDIR /app
 

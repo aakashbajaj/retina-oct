@@ -1,3 +1,4 @@
+tensorflow
 opencv-python
 tqdm
 apache_beam[gcp]
