@@ -8,12 +8,15 @@ def filenames_to_csv(input_dir, seed):
 	labels = {}
 	class_cnt = 0
 
+	print("Reading: ", input_dir)
+
 	for classname in tf.gfile.ListDirectory(input_dir):
 		if classname.endswith("/"):
 			classname = classname[:-1]
 		class_dir = os.path.join(input_dir, classname)
 		# print(class_dir)
 		
+		print("Reading class dir: ", class_dir)
 		if tf.gfile.IsDirectory(class_dir):	
 			for filename in tf.gfile.ListDirectory(class_dir):
 				filepath = os.path.join(class_dir, filename)
@@ -39,6 +42,7 @@ def get_example_share(examples, train_split):
 def write_file_csv(targets, data_files):
 	for step in targets:		
 		try:
+			print("Writing: ", data_files['{}_csv'.format(step)])
 			with tf.gfile.GFile(data_files['{}_csv'.format(step)], 'w') as fl:
 				writer = csv.writer(fl)
 				writer.writerows(data_files['{}_examples'.format(step)])
