@@ -32,6 +32,9 @@ if __name__ == '__main__':
 	CSV_FILE_LOCATION = arguments['csv_list']
 	print("\n Saving CSV list to {}".format(CSV_FILE_LOCATION))
 
+	if not tf.gfile.IsDirectory(CSV_FILE_LOCATION):
+		tf.gfile.MakeDirs(CSV_FILE_LOCATION)
+
 	# no split, direct data write
 	if SPLIT_FLAG == 0:
 		targets = ['data']
