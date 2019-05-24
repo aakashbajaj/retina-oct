@@ -26,7 +26,7 @@ if __name__ == '__main__':
 	arguments = args.__dict__
 
 	
-	gen_csv_cmd = ('python generate_csv.py --input-dir {0} --csv-list {1} --label-list {2} --split-flag {3} --train-split {4} --seed {5}').format(
+	gen_csv_cmd = ('python3 generate_csv.py --input-dir {0} --csv-list {1} --label-list {2} --split-flag {3} --train-split {4} --seed {5}').format(
 		arguments['input_dir'],
 		os.path.join(arguments['output_dir'], "file_list_csv"),
 		os.path.join(arguments['output_dir'], "labels.json"),
@@ -43,7 +43,7 @@ if __name__ == '__main__':
 		exit(1)
 
 	if arguments['split_flag'] == 2:
-		df_prep_cmd = 'python prep_df.py --train-csv {0} --test-csv {1} --output-dir {2} --label-list {3} --project-id {4} --runner {5} --num-shards {6} --split-flag {7} --height {8} --width {9} --input-dir {10}'.format(
+		df_prep_cmd = 'python3 prep_df.py --train-csv {0} --test-csv {1} --output-dir {2} --label-list {3} --project-id {4} --runner {5} --num-shards {6} --split-flag {7} --height {8} --width {9} --input-dir {10}'.format(
 			# os.path.join(arguments['csv_list'], "train_list.csv"),
 			# os.path.join(arguments['csv_list'], "test_list.csv"),
 			os.path.join(arguments['output_dir'], "file_list_csv/train_list.csv"),
@@ -60,7 +60,7 @@ if __name__ == '__main__':
 		)
 
 	elif arguments['split_flag'] == 0:
-		df_prep_cmd = 'python prep_df.py --train-csv {0} --output-dir {1} --label-list {2} --project-id {3} --runner {4} --num-shards {5} --split-flag {6} --height {7} --width {8} --input-dir {9}'.format(
+		df_prep_cmd = 'python3 prep_df.py --train-csv {0} --output-dir {1} --label-list {2} --project-id {3} --runner {4} --num-shards {5} --split-flag {6} --height {7} --width {8} --input-dir {9}'.format(
 			# os.path.join(arguments['csv_list'], "data_list.csv"),
 			# os.path.join(arguments['output_dir'], "tfrecords"),
 			# os.path.join(arguments['label_location'], "labels.json"),
