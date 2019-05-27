@@ -1,6 +1,6 @@
 tensorflow
 opencv-python
 tqdm
-pyasn1
+google-cloud-storage
 apache_beam
 apache_beam[gcp]

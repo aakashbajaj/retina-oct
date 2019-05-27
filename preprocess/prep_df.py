@@ -236,6 +236,7 @@ if __name__ == '__main__':
 	# and this could cause confusion if earlier run has 0000-of-0005, for eg
 	if on_cloud:
 		try:
+			print("Clearing {}".format(OUTPUT_DIR))
 			subprocess.check_call('gsutil -m rm -r {}'.format(OUTPUT_DIR).split())
 		except subprocess.CalledProcessError:
 			pass
