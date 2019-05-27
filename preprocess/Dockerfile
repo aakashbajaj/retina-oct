@@ -8,6 +8,7 @@ RUN	apt-get update && \
 	apt-get install -y python3 python3-pip && \
 	pip3 install --upgrade pip && \
 	pip install --upgrade -r requirements.txt && \
+	pip install apache_beam[gcp] && \
 	apt-get install -y libxrender1 && \
 	apt install -y libglib2.0-0 libsm6 libxext6
 
