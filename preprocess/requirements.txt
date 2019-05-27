@@ -1,4 +1,6 @@
 tensorflow
 opencv-python
 tqdm
+pyasn1
+apache_beam
 apache_beam[gcp]
