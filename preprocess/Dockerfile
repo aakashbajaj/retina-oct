@@ -9,6 +9,7 @@ RUN	apt-get update && \
 	pip3 install --upgrade pip && \
 	pip install --upgrade -r requirements.txt && \
 	pip install apache_beam[gcp] && \
+	pip install google-cloud-storage && \
 	apt-get install -y libxrender1 && \
 	apt install -y libglib2.0-0 libsm6 libxext6
 
