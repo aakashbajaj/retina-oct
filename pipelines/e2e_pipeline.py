@@ -14,9 +14,12 @@ def dp_inf_pipe(
   out_dir: dsl.PipelineParam = dsl.PipelineParam(name='data-dir', value='GCS_TFRECORD_OUTDIR_HERE'),
   model_dir: dsl.PipelineParam = dsl.PipelineParam(name='model-dir', value='MODEL_CHECKPOINT_DIR_HERE'),
   save_model_dir: dsl.PipelineParam = dsl.PipelineParam(name='save-model-dir', value="DIR_TO_EXPORT_SAVED_MODEL"),
-  model_name: dsl.PipelineParam = dsl.PipelineParam(name='model-name', value='MODEL_NAME_FOR_SERVING'),
+  model_name: dsl.PipelineParam = dsl.PipelineParam(name='model-name', value='MODEL_NAME_FOR_SERVING (No spaces or underscores)'),
+  epochs: dsl.PipelineParam = dsl.PipelineParam(name='train-num-epochs', value=1),
+  batch_size: dsl.PipelineParam = dsl.PipelineParam(name='batch-size-train', value=32),
 
   train_flag: dsl.PipelineParam = dsl.PipelineParam(name='train-flag', value=1),
+  dataprep_flag: dsl.PipelineParam = dsl.PipelineParam(name='dataprep-flag', value=0),
 
   # runner: dsl.PipelineParam = dsl.PipelineParam(name='runner', value=""),
   num_shards: dsl.PipelineParam = dsl.PipelineParam(name='num-shards', value=5),
@@ -28,8 +31,6 @@ def dp_inf_pipe(
   channels: dsl.PipelineParam = dsl.PipelineParam(name='channels', value=1),
   
   eval_steps: dsl.PipelineParam = dsl.PipelineParam(name='eval-steps', value=10000),
-  epochs: dsl.PipelineParam = dsl.PipelineParam(name='num-epochs', value=1),
-  batch_size: dsl.PipelineParam = dsl.PipelineParam(name='batch-size', value=32),
   max_train_steps: dsl.PipelineParam = dsl.PipelineParam(name='max-train-steps', value=10000),
   prefetch_buffer_size: dsl.PipelineParam = dsl.PipelineParam(name='prefetch-buffer', value=-1),
 
@@ -47,6 +48,7 @@ def dp_inf_pipe(
     image='gcr.io/speedy-aurora-193605/prep_tfr_df:latest',
     arguments=["--input-dir", inp_dir,
       "--output-dir", out_dir,
+      "--dataprep-flag", dataprep_flag,
       "--num-shards", num_shards,
       "--split-flag", split_flag,
       "--train-split", train_split,
@@ -58,7 +60,7 @@ def dp_inf_pipe(
       ],
       # file_outputs={'output': '/tmp/output'}
 
-      ).apply(gcp.use_gcp_secret(secret_name='admin-gcp-sa', secret_file_path_in_volume='/admin-gcp-sa.json', volume_name='gcp-credentials-admin-gcp-sa'))
+      ).apply(gcp.use_gcp_secret(secret_name='user-gcp-sa', secret_file_path_in_volume='/user-gcp-sa.json', volume_name='gcp-credentials-user-gcp-sa'))
 
   # oct_data_prep.set_gpu_limit(2)
   # oct_data_prep.set_memory_request('G')
@@ -86,9 +88,9 @@ def dp_inf_pipe(
         ]
     ).apply(gcp.use_gcp_secret(secret_name='user-gcp-sa', secret_file_path_in_volume='/user-gcp-sa.json', volume_name='gcp-credentials-user-gcp-sa'))
 
-  tensorbaord = dsl.ContainerOp(
-    name='tensorbaord',
-    image='gcr.io/speedy-aurora-193605/model-tensorbaord:latest',
+  tensorboard = dsl.ContainerOp(
+    name='tensorboard',
+    image='gcr.io/speedy-aurora-193605/model-tensorboard:latest',
     arguments=["--model-dir", model_dir,
       ],
       # file_outputs={'output': '/tmp/output'}
@@ -111,8 +113,8 @@ def dp_inf_pipe(
   train.set_cpu_request('4')
   train.after(dataprep)
   tfserve.after(train)
-  tensorbaord.after(dataprep)
+  tensorboard.after(dataprep)
 
 if __name__ == '__main__':
   import kfp.compiler as compiler
-  compiler.Compiler().compile(dp_inf_pipe,  'e2e.tar.gz')
+  compiler.Compiler().compile(dp_inf_pipe,  'e2e_final.tar.gz')
