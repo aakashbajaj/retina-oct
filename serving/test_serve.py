@@ -45,8 +45,8 @@ def make_request(stub, file_path, model_name):
     result_future = stub.Predict.future(request, 10.0)
     prediction = result_future.result()
 
-    print(prediction.outputs['classes'].int64_val)
-    print(prediction.outputs['probabilities'].float_val)
+    # print(prediction.outputs['classes'].int64_val)
+    # print(prediction.outputs['probabilities'].float_val)
 
     pred_class = (prediction.outputs['classes'].int64_val)[0]
     pred_probs = prediction.outputs['probabilities'].float_val
