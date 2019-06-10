@@ -14,11 +14,13 @@ parser = ArgumentParser()
 
 parser.add_argument("--ip", required=True, dest="IP_ADDR", help="IP Address of TF Serve Endpoint")
 parser.add_argument("--model-name", required=True, dest="MODEL_NAME", help="Deployed Model Name")
+parser.add_argument("--image-path", required=True, dest="IMAGE_PATH", help="Input Image to be predicted")
 parser.add_argument("--port", type=int, default=9000, dest="PORT", help="Deployed Service GRPC Port")
 
 args = parser.parse_args()
 IP_ADDR = args.IP_ADDR
 MODEL_NAME = args.MODEL_NAME
+IMAGE_PATH = args.IMAGE_PATH
 PORT = int(args.PORT)
 
 def make_request(stub, file_path, model_name):
@@ -56,6 +58,6 @@ def make_request(stub, file_path, model_name):
 channel = implementations.insecure_channel(IP_ADDR, PORT)
 stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
 
-dog_path = os.path.expanduser('/home/techno/oct_data/NORMAL-2362579-1.jpeg')
+dog_path = os.path.expanduser(IMAGE_PATH)
 output = make_request(stub, dog_path, MODEL_NAME)
 print(output)
