@@ -4,18 +4,26 @@ import tensorflow as tf
 from grpc.beta import implementations
 from tensorflow_serving.apis import predict_pb2, prediction_service_pb2, model_pb2
 
-
-
 # https://stackoverflow.com/questions/42519010/how-to-do-batching-in-tensorflow-serving
 # try method for batch prediction
 # need changes on serving side too
 
 
+from argparse import ArgumentParser
+parser = ArgumentParser()
 
+parser.add_argument("--ip", required=True, dest="IP_ADDR", help="IP Address of TF Serve Endpoint")
+parser.add_argument("--model-name", required=True, dest="MODEL_NAME", help="Deployed Model Name")
+parser.add_argument("--port", type=int, default=9000, dest="PORT", help="Deployed Service GRPC Port")
 
-def make_request(stub, file_path):
+args = parser.parse_args()
+IP_ADDR = args.IP_ADDR
+MODEL_NAME = args.MODEL_NAME
+PORT = int(args.PORT)
+
+def make_request(stub, file_path, model_name):
     request = predict_pb2.PredictRequest()
-    request.model_spec.name = 'retgpu'
+    request.model_spec.name = model_name
     #request.model_spec.signature_name = 'serving_default'
     
     if file_path.startswith('http'):
@@ -45,9 +53,9 @@ def make_request(stub, file_path):
     return pred_class, pred_class_prob
     
 
-channel = implementations.insecure_channel('34.73.91.4', 9000)
+channel = implementations.insecure_channel(IP_ADDR, PORT)
 stub = prediction_service_pb2.beta_create_PredictionService_stub(channel)
 
 dog_path = os.path.expanduser('/home/techno/oct_data/NORMAL-2362579-1.jpeg')
-output = make_request(stub, dog_path)
+output = make_request(stub, dog_path, MODEL_NAME)
 print(output)
