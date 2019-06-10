@@ -39,14 +39,14 @@ def main(argv=None):
   KUBEFLOW_NAMESPACE = 'kubeflow'
   logging.getLogger().setLevel(logging.INFO)
 
-  print("contents:")
-  subprocess.call(['ls', '/secret/gcp-credentials'])
-  print("GOOGLE_APPLICATION_CREDENTIALS:")
-  print("environment 1: ", os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'))
-  print("user-gcp:")
-  subprocess.call(['cat', '/secret/gcp-credentials/user-gcp-sa.json'])
-  print("admin-gcp:")
-  subprocess.call(['cat', '/secret/gcp-credentials/admin-gcp-sa.json'])
+  # print("contents:")
+  # subprocess.call(['ls', '/secret/gcp-credentials'])
+  # print("GOOGLE_APPLICATION_CREDENTIALS:")
+  # print("environment 1: ", os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'))
+  # print("user-gcp:")
+  # subprocess.call(['cat', '/secret/gcp-credentials/user-gcp-sa.json'])
+  # print("admin-gcp:")
+  # subprocess.call(['cat', '/secret/gcp-credentials/admin-gcp-sa.json'])
 
   # Make sure model dir exists before proceeding
   # retries = 0
@@ -92,7 +92,7 @@ def main(argv=None):
   args_list = ['--%s=%s' % (k.replace('_', '-'),v)
                for k,v in six.iteritems(args_dict) if v is not None]
   logging.info('Generating tfserving template.')
-  print("environment 2: ", os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'))
+  # print("environment 2: ", os.environ.get('GOOGLE_APPLICATION_CREDENTIALS'))
 
 
   template_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'tfserve-template.yaml')
