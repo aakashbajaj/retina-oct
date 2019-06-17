@@ -24,6 +24,7 @@ handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 root.addHandler(handler)
+log_stream.close()
 
 def get_available_gpus():
 	local_device_protos = device_lib.list_local_devices()
