@@ -13,6 +13,18 @@ import data_utils
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
+import logging
+
+root = logging.getLogger()
+root.setLevel(logging.DEBUG)
+
+log_stream = tf.gfile.GFile("gs://retin-oct/testlogs.txt", "w")
+handler = logging.StreamHandler(log_stream)
+handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+root.addHandler(handler)
+
 def get_available_gpus():
 	local_device_protos = device_lib.list_local_devices()
 	dev_list = [x.name for x in local_device_protos if x.device_type == 'GPU']
