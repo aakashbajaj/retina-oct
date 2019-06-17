@@ -18,7 +18,7 @@ import logging
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
 
-log_stream = tf.gfile.GFile("gs://retin-oct/testlogs.txt", "w")
+log_stream = tf.gfile.GFile("gs://kfp-testing/retin_oct/testlogs.txt", "w")
 handler = logging.StreamHandler(log_stream)
 handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
